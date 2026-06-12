@@ -130,3 +130,99 @@ jobs:
             git commit -m "🤖 Update scores $(date -u +'%Y-%m-%d %H:%M UTC')"
             git push origin main
           fi
+          print(f"API key found: {api_key[:6]}...")
+
+          urls_to_try = [
+              ("v3.football.api-sports.io", "https://v3.football.api-sports.io/fixtures?league=1&season=2026", "x-apisports-key"),
+              ("v3.api-football.com",       "https://v3.api-football.com/fixtures?league=1&season=2026",       "x-rapidapi-key"),
+          ]
+
+          data = None
+          for name, url, header_key in urls_to_try:
+              print(f"Trying {name}...")
+              req = urllib.request.Request(url, headers={header_key: api_key})
+              try:
+                  with urllib.request.urlopen(req, timeout=15) as resp:
+                      data = json.loads(resp.read().decode())
+                  errors = data.get("errors", {})
+                  count  = len(data.get("response", []))
+                  print(f"  errors: {errors}")
+                  print(f"  response count: {count}")
+                  if not errors or errors == [] or errors == {}:
+                      print(f"  SUCCESS with {name}")
+                      break
+                  data = None
+              except Exception as e:
+                  print(f"  Request failed: {e}")
+
+          if data is None:
+              print("All API attempts failed")
+              exit(1)
+
+          fixtures = data.get("response", [])
+          statuses = set(f.get("fixture",{}).get("status",{}).get("short","?") for f in fixtures)
+          print(f"Statuses found: {statuses}")
+
+          matches = []
+          for f in fixtures:
+              fix          = f.get("fixture", {})
+              teams        = f.get("teams", {})
+              goals        = f.get("goals", {})
+              score        = f.get("score", {})
+              status_short = fix.get("status", {}).get("short", "")
+
+              if status_short in ("NS", "TBD"):
+                  continue
+
+              home_name  = teams.get("home", {}).get("name", "")
+              away_name  = teams.get("away", {}).get("name", "")
+              home_goals = goals.get("home")
+              away_goals = goals.get("away")
+
+              if home_goals is None or away_goals is None:
+                  continue
+
+              is_live  = status_short in ("1H","2H","ET","BT","P","INT","LIVE")
+              is_final = status_short in ("FT","AET","PEN")
+
+              entry = {
+                  "home":   home_name,
+                  "away":   away_name,
+                  "score":  f"{home_goals}-{away_goals}",
+                  "status": "live" if is_live else ("final" if is_final else "other"),
+                  "minute": fix.get("status", {}).get("elapsed"),
+                  "date":   fix.get("date", "")[:10]
+              }
+
+              pen = score.get("penalty", {})
+              if pen.get("home") is not None and pen.get("away") is not None:
+                  entry["penalty"] = f"{pen['home']}-{pen['away']}"
+
+              matches.append(entry)
+              print(f"  + {home_name} {home_goals}-{away_goals} {away_name} [{status_short}]")
+
+          output = {
+              "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "count":   len(matches),
+              "matches": matches
+          }
+
+          with open("scores.json", "w", encoding="utf-8") as fh:
+              json.dump(output, fh, ensure_ascii=False, indent=2)
+
+          print(f"Written {len(matches)} results to scores.json")
+          EOF
+
+      - name: Commit and push scores.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git reset --soft origin/main
+          git add scores.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🤖 Update scores $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push origin main
+          fi
