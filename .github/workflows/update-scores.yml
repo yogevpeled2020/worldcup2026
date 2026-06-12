@@ -1,0 +1,110 @@
+name: Update World Cup Scores
+
+on:
+  schedule:
+    # רץ כל יום בשעה 08:00 שעון ישראל (05:00 UTC)
+    # וגם בשעה 23:00 שעון ישראל (20:00 UTC) לאחר משחקי ערב
+    - cron: '0 5 * * *'
+    - cron: '0 20 * * *'
+  workflow_dispatch: # אפשרות להפעיל ידנית מ-GitHub
+
+jobs:
+  fetch-scores:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # הרשאה לכתוב לקובץ ב-repo
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch scores from API-Football
+        env:
+          API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
+        run: |
+          python3 << 'EOF'
+          import urllib.request
+          import json
+          import os
+          from datetime import datetime, timezone
+
+          api_key = os.environ.get("API_KEY", "")
+          if not api_key:
+              print("No API key found, skipping fetch")
+              exit(0)
+
+          # World Cup 2026: league=1, season=2026
+          url = "https://v3.football.api-sports.io/fixtures?league=1&season=2026"
+          req = urllib.request.Request(url, headers={
+              "x-apisports-key": api_key
+          })
+
+          try:
+              with urllib.request.urlopen(req, timeout=15) as resp:
+                  data = json.loads(resp.read().decode())
+          except Exception as e:
+              print(f"API request failed: {e}")
+              exit(1)
+
+          fixtures = data.get("response", [])
+          print(f"Fetched {len(fixtures)} fixtures")
+
+          matches = []
+          for f in fixtures:
+              fix   = f.get("fixture", {})
+              teams = f.get("teams", {})
+              goals = f.get("goals", {})
+              score = f.get("score", {})
+
+              status_short = fix.get("status", {}).get("short", "")
+              # סטטוסים: NS=טרם התחיל, 1H/2H/ET/P=חי, FT/AET/PEN=סיום, PST/CANC=בוטל
+              if status_short in ("NS", "TBD"):
+                  continue   # טרם שוחק — לא כולל
+
+              home_name  = teams.get("home", {}).get("name", "")
+              away_name  = teams.get("away", {}).get("name", "")
+              home_goals = goals.get("home")
+              away_goals = goals.get("away")
+
+              if home_goals is None or away_goals is None:
+                  continue
+
+              is_live = status_short in ("1H","2H","ET","BT","P","INT","LIVE")
+              is_final = status_short in ("FT","AET","PEN")
+
+              entry = {
+                  "home": home_name,
+                  "away": away_name,
+                  "score": f"{home_goals}-{away_goals}",
+                  "status": "live" if is_live else ("final" if is_final else "other"),
+                  "minute": fix.get("status", {}).get("elapsed"),
+                  "date": fix.get("date", "")[:10]
+              }
+
+              # אם יש פנדלים
+              pen = score.get("penalty", {})
+              if pen.get("home") is not None and pen.get("away") is not None:
+                  entry["penalty"] = f"{pen['home']}-{pen['away']}"
+
+              matches.append(entry)
+
+          output = {
+              "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "count": len(matches),
+              "matches": matches
+          }
+
+          with open("scores.json", "w", encoding="utf-8") as fh:
+              json.dump(output, fh, ensure_ascii=False, indent=2)
+
+          print(f"Written {len(matches)} results to scores.json")
+          EOF
+
+      - name: Commit scores.json if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add scores.json
+          # מבצע commit רק אם יש שינוי
+          git diff --cached --quiet || git commit -m "🤖 Update scores $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
