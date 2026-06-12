@@ -13,216 +13,124 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-
-      - name: Fetch scores from API-Football
+      - name: Fetch scores and update via GitHub API
         env:
           API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
           python3 << 'EOF'
           import urllib.request
+          import urllib.error
           import json
           import os
+          import base64
           from datetime import datetime, timezone
 
-          api_key = os.environ.get("API_KEY", "")
-          if not api_key:
-              print("ERROR: No API key found - check FOOTBALL_API_KEY secret")
-              exit(1)
+          api_key      = os.environ["API_KEY"]
+          github_token = os.environ["GITHUB_TOKEN"]
+          repo         = os.environ["REPO"]
 
-          print(f"API key found: {api_key[:6]}...")
-
-          urls_to_try = [
-              ("v3.football.api-sports.io", "https://v3.football.api-sports.io/fixtures?league=1&season=2026", "x-apisports-key"),
-              ("v3.api-football.com",       "https://v3.api-football.com/fixtures?league=1&season=2026",       "x-rapidapi-key"),
-          ]
-
-          data = None
-          for name, url, header_key in urls_to_try:
-              print(f"Trying {name}...")
-              req = urllib.request.Request(url, headers={header_key: api_key})
-              try:
-                  with urllib.request.urlopen(req, timeout=15) as resp:
-                      data = json.loads(resp.read().decode())
-                  errors = data.get("errors", {})
-                  count  = len(data.get("response", []))
-                  print(f"  errors: {errors}")
-                  print(f"  response count: {count}")
-                  if not errors or errors == [] or errors == {}:
-                      print(f"  SUCCESS with {name}")
-                      break
-                  data = None
-              except Exception as e:
-                  print(f"  Request failed: {e}")
-
-          if data is None:
-              print("All API attempts failed")
-              exit(1)
-
-          fixtures = data.get("response", [])
-          statuses = set(f.get("fixture",{}).get("status",{}).get("short","?") for f in fixtures)
-          print(f"Statuses found: {statuses}")
-
-          matches = []
-          for f in fixtures:
-              fix          = f.get("fixture", {})
-              teams        = f.get("teams", {})
-              goals        = f.get("goals", {})
-              score        = f.get("score", {})
-              status_short = fix.get("status", {}).get("short", "")
-
-              if status_short in ("NS", "TBD"):
-                  continue
-
-              home_name  = teams.get("home", {}).get("name", "")
-              away_name  = teams.get("away", {}).get("name", "")
-              home_goals = goals.get("home")
-              away_goals = goals.get("away")
-
-              if home_goals is None or away_goals is None:
-                  continue
-
-              is_live  = status_short in ("1H","2H","ET","BT","P","INT","LIVE")
-              is_final = status_short in ("FT","AET","PEN")
-
-              entry = {
-                  "home":   home_name,
-                  "away":   away_name,
-                  "score":  f"{home_goals}-{away_goals}",
-                  "status": "live" if is_live else ("final" if is_final else "other"),
-                  "minute": fix.get("status", {}).get("elapsed"),
-                  "date":   fix.get("date", "")[:10]
-              }
-
-              pen = score.get("penalty", {})
-              if pen.get("home") is not None and pen.get("away") is not None:
-                  entry["penalty"] = f"{pen['home']}-{pen['away']}"
-
-              matches.append(entry)
-              print(f"  + {home_name} {home_goals}-{away_goals} {away_name} [{status_short}]")
-
-          output = {
-              "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-              "count":   len(matches),
-              "matches": matches
-          }
-
-          with open("scores.json", "w", encoding="utf-8") as fh:
-              json.dump(output, fh, ensure_ascii=False, indent=2)
-
-          print(f"Written {len(matches)} results to scores.json")
-          EOF
-
-      - name: Commit and push scores.json
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git reset --soft origin/main
-          git add scores.json
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "🤖 Update scores $(date -u +'%Y-%m-%d %H:%M UTC')"
-            git push origin main
-          fi
-          print(f"API key found: {api_key[:6]}...")
+          # ── 1. שלוף תוצאות מ-API-Football ──
+          print(f"API key: {api_key[:6]}...")
 
           urls_to_try = [
               ("v3.football.api-sports.io", "https://v3.football.api-sports.io/fixtures?league=1&season=2026", "x-apisports-key"),
               ("v3.api-football.com",       "https://v3.api-football.com/fixtures?league=1&season=2026",       "x-rapidapi-key"),
           ]
 
-          data = None
-          for name, url, header_key in urls_to_try:
+          fixtures = []
+          for name, url, hkey in urls_to_try:
               print(f"Trying {name}...")
-              req = urllib.request.Request(url, headers={header_key: api_key})
+              req = urllib.request.Request(url, headers={hkey: api_key})
               try:
-                  with urllib.request.urlopen(req, timeout=15) as resp:
-                      data = json.loads(resp.read().decode())
+                  with urllib.request.urlopen(req, timeout=15) as r:
+                      data = json.loads(r.read().decode())
                   errors = data.get("errors", {})
-                  count  = len(data.get("response", []))
-                  print(f"  errors: {errors}")
-                  print(f"  response count: {count}")
-                  if not errors or errors == [] or errors == {}:
-                      print(f"  SUCCESS with {name}")
+                  print(f"  errors: {errors}  count: {len(data.get('response',[]))}")
+                  if not errors or errors in ([], {}):
+                      fixtures = data.get("response", [])
+                      print(f"  OK - {len(fixtures)} fixtures")
                       break
-                  data = None
               except Exception as e:
-                  print(f"  Request failed: {e}")
+                  print(f"  Failed: {e}")
 
-          if data is None:
-              print("All API attempts failed")
-              exit(1)
-
-          fixtures = data.get("response", [])
           statuses = set(f.get("fixture",{}).get("status",{}).get("short","?") for f in fixtures)
-          print(f"Statuses found: {statuses}")
+          print(f"Statuses: {statuses}")
 
           matches = []
           for f in fixtures:
-              fix          = f.get("fixture", {})
-              teams        = f.get("teams", {})
-              goals        = f.get("goals", {})
-              score        = f.get("score", {})
-              status_short = fix.get("status", {}).get("short", "")
-
-              if status_short in ("NS", "TBD"):
+              fix   = f.get("fixture", {})
+              teams = f.get("teams", {})
+              goals = f.get("goals", {})
+              score = f.get("score", {})
+              st    = fix.get("status", {}).get("short", "")
+              if st in ("NS", "TBD"):
                   continue
-
-              home_name  = teams.get("home", {}).get("name", "")
-              away_name  = teams.get("away", {}).get("name", "")
-              home_goals = goals.get("home")
-              away_goals = goals.get("away")
-
-              if home_goals is None or away_goals is None:
+              hg = goals.get("home")
+              ag = goals.get("away")
+              if hg is None or ag is None:
                   continue
-
-              is_live  = status_short in ("1H","2H","ET","BT","P","INT","LIVE")
-              is_final = status_short in ("FT","AET","PEN")
-
               entry = {
-                  "home":   home_name,
-                  "away":   away_name,
-                  "score":  f"{home_goals}-{away_goals}",
-                  "status": "live" if is_live else ("final" if is_final else "other"),
-                  "minute": fix.get("status", {}).get("elapsed"),
-                  "date":   fix.get("date", "")[:10]
+                  "home":   teams.get("home",{}).get("name",""),
+                  "away":   teams.get("away",{}).get("name",""),
+                  "score":  f"{hg}-{ag}",
+                  "status": "live" if st in ("1H","2H","ET","BT","P","INT","LIVE") else "final",
+                  "minute": fix.get("status",{}).get("elapsed"),
+                  "date":   fix.get("date","")[:10],
               }
-
               pen = score.get("penalty", {})
-              if pen.get("home") is not None and pen.get("away") is not None:
+              if pen.get("home") is not None:
                   entry["penalty"] = f"{pen['home']}-{pen['away']}"
-
               matches.append(entry)
-              print(f"  + {home_name} {home_goals}-{away_goals} {away_name} [{status_short}]")
+              print(f"  + {entry['home']} {entry['score']} {entry['away']}")
 
           output = {
               "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
               "count":   len(matches),
-              "matches": matches
+              "matches": matches,
+          }
+          content_str = json.dumps(output, ensure_ascii=False, indent=2)
+
+          # ── 2. עדכן scores.json דרך GitHub API (עוקף git לגמרי) ──
+          gh_api = f"https://api.github.com/repos/{repo}/contents/scores.json"
+          headers = {
+              "Authorization": f"token {github_token}",
+              "Accept": "application/vnd.github+json",
+              "Content-Type": "application/json",
           }
 
-          with open("scores.json", "w", encoding="utf-8") as fh:
-              json.dump(output, fh, ensure_ascii=False, indent=2)
+          # קבל את ה-SHA הנוכחי של הקובץ
+          req = urllib.request.Request(gh_api, headers=headers)
+          try:
+              with urllib.request.urlopen(req, timeout=10) as r:
+                  current = json.loads(r.read().decode())
+              sha = current["sha"]
+              print(f"Current scores.json SHA: {sha[:8]}")
+          except Exception as e:
+              sha = None
+              print(f"No existing file (will create): {e}")
 
-          print(f"Written {len(matches)} results to scores.json")
+          # שלח את התוכן החדש
+          payload = {
+              "message": f"🤖 Update scores {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
+              "content": base64.b64encode(content_str.encode()).decode(),
+          }
+          if sha:
+              payload["sha"] = sha
+
+          req = urllib.request.Request(
+              gh_api,
+              data=json.dumps(payload).encode(),
+              headers=headers,
+              method="PUT",
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=15) as r:
+                  result = json.loads(r.read().decode())
+              print(f"✅ scores.json updated! commit: {result['commit']['sha'][:8]}")
+              print(f"   Written {len(matches)} results")
+          except urllib.error.HTTPError as e:
+              print(f"❌ GitHub API error: {e.code} {e.read().decode()}")
+              exit(1)
           EOF
-
-      - name: Commit and push scores.json
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git reset --soft origin/main
-          git add scores.json
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "🤖 Update scores $(date -u +'%Y-%m-%d %H:%M UTC')"
-            git push origin main
-          fi
