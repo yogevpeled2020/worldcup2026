@@ -480,8 +480,8 @@
   <button class="filter-btn" onclick="filterGroup('L')" style="color:var(--gL);border-color:var(--gL)" id="btn-L">L</button>
 
   <div class="view-toggle">
-    <button class="view-btn active" id="vbtn-groups" onclick="setView('groups')" title="לפי קבוצות">⊞</button>
-    <button class="view-btn" id="vbtn-timeline" onclick="setView('timeline')" title="לפי תאריך">≡</button>
+    <button class="view-btn active" id="vbtn-groups" onclick="setView('groups')">⊞ לפי קבוצות</button>
+    <button class="view-btn" id="vbtn-timeline" onclick="setView('timeline')">≡ לפי תאריך</button>
   </div>
 
   <div class="search-wrap">
@@ -910,8 +910,8 @@ function setView(v) {
   currentView = v;
   document.getElementById('vbtn-groups').classList.toggle('active', v === 'groups');
   document.getElementById('vbtn-timeline').classList.toggle('active', v === 'timeline');
-  document.getElementById('groupsView').style.display = v === 'groups' ? '' : 'none';
-  document.getElementById('timelineView').style.display = v === 'timeline' ? '' : 'none';
+  document.getElementById('groupsView').style.display = v === 'groups' ? 'block' : 'none';
+  document.getElementById('timelineView').style.display = v === 'timeline' ? 'block' : 'none';
   renderCurrent();
 }
 
