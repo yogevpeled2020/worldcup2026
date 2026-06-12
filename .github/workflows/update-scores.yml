@@ -66,15 +66,23 @@ jobs:
               home = m.get("homeTeam", {}).get("name", "")
               away = m.get("awayTeam", {}).get("name", "")
               score_data = m.get("score", {})
-              ft = score_data.get("fullTime", {})
+              is_live = status in ("IN_PLAY", "PAUSED")
+
+              # נסה fullTime קודם, אחר כך regularTime, אחר כך halfTime
+              ft  = score_data.get("fullTime", {})
+              rt  = score_data.get("regularTime", {})
+              ht  = score_data.get("halfTime", {})
+
               hg = ft.get("home")
               ag = ft.get("away")
+              if hg is None: hg = rt.get("home")
+              if ag is None: ag = rt.get("away")
+              if hg is None: hg = ht.get("home")
+              if ag is None: ag = ht.get("away")
 
-              # אם המשחק חי — קח את התוצאה הנוכחית
-              if hg is None or ag is None:
-                  ht = score_data.get("halfTime", {})
-                  hg = ht.get("home", 0)
-                  ag = ht.get("away", 0)
+              # משחק חי שעדיין לא התחיל לדווח ניקוד — נציג 0-0
+              if is_live and hg is None: hg = 0
+              if is_live and ag is None: ag = 0
 
               if hg is None or ag is None:
                   continue
