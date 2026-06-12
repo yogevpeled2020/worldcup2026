@@ -48,6 +48,8 @@ jobs:
 
           fixtures = data.get("response", [])
           print(f"Fetched {len(fixtures)} fixtures")
+          print(f"API errors: {data.get('errors')}")
+          print(f"API paging: {data.get('paging')}")
 
           matches = []
           for f in fixtures:
