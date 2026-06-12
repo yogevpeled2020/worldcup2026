@@ -130,4 +130,4 @@ jobs:
           git pull --rebase origin main
           git add scores.json
           git diff --cached --quiet || git commit -m "🤖 Update scores $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push
+          git push --force
