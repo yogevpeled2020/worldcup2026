@@ -180,11 +180,12 @@
   .match-date {
     font-size: 0.65rem;
     color: var(--gray);
-    min-width: 60px;
+    min-width: 68px;
     text-align: center;
     line-height: 1.3;
   }
-  .match-date .day { font-weight: 600; color: var(--gold-light); font-size: 0.7rem; }
+  .match-date .day { font-weight: 600; color: var(--gold-light); font-size: 0.68rem; }
+  .match-time-inline { font-size: 0.7rem; color: var(--gold); font-weight: 600; margin-top: 2px; }
 
   .match-teams {
     flex: 1;
@@ -550,12 +551,12 @@ function toIL(gmtHour, gmtMin = 0) {
 // Format: { group, date, dateLabel, home, away, timeGMT, timeMins, venue, city }
 const MATCHES = [
   // ── June 11 (Thu) ──
-  { group:'A', date:'2026-06-11', day:'יום ה׳ 11/06', home:'מקסיקו 🇲🇽', away:'דרום אפריקה 🇿🇦', gmtH:19, gmtM:0, venue:'Mexico City Stadium', city:'מקסיקו סיטי' },
-  { group:'A', date:'2026-06-11', day:'יום ה׳ 11/06', home:'קוריאה הדרומית 🇰🇷', away:'צ\'כיה 🇨🇿', gmtH:2,  gmtM:0, venue:'Estadio Guadalajara', city:'זאפופן', nextDay:true },
+  { group:'A', date:'2026-06-11', day:'חמישי 11/06', home:'מקסיקו 🇲🇽', away:'דרום אפריקה 🇿🇦', gmtH:19, gmtM:0, venue:'Mexico City Stadium', city:'מקסיקו סיטי' },
+  { group:'A', date:'2026-06-11', day:'חמישי 11/06', home:'קוריאה הדרומית 🇰🇷', away:'צ\'כיה 🇨🇿', gmtH:2,  gmtM:0, venue:'Estadio Guadalajara', city:'זאפופן', nextDay:true },
 
   // ── June 12 (Fri) ──
-  { group:'B', date:'2026-06-12', day:'יום ו׳ 12/06', home:'קנדה 🇨🇦', away:'בוסניה 🇧🇦', gmtH:19, gmtM:0, venue:'Toronto Stadium', city:'טורונטו' },
-  { group:'D', date:'2026-06-12', day:'יום ו׳ 12/06', home:'ארה"ב 🇺🇸', away:'פרגוואי 🇵🇾', gmtH:1,  gmtM:0, venue:'Los Angeles Stadium', city:'לוס אנג\'לס', nextDay:true },
+  { group:'B', date:'2026-06-12', day:'שישי 12/06', home:'קנדה 🇨🇦', away:'בוסניה 🇧🇦', gmtH:19, gmtM:0, venue:'Toronto Stadium', city:'טורונטו' },
+  { group:'D', date:'2026-06-12', day:'שישי 12/06', home:'ארה"ב 🇺🇸', away:'פרגוואי 🇵🇾', gmtH:1,  gmtM:0, venue:'Los Angeles Stadium', city:'לוס אנג\'לס', nextDay:true },
 
   // ── June 13 (Sat) ──
   { group:'B', date:'2026-06-13', day:'שבת 13/06', home:'קטר 🇶🇦', away:'שוויץ 🇨🇭', gmtH:19, gmtM:0, venue:'San Francisco Bay Area Stadium', city:'סן פרנסיסקו' },
@@ -588,16 +589,16 @@ const MATCHES = [
   { group:'K', date:'2026-06-17', day:'רביעי 17/06', home:'אוזבקיסטן 🇺🇿', away:'קולומביה 🇨🇴', gmtH:2,  gmtM:0, venue:'Mexico City Stadium', city:'מקסיקו סיטי', nextDay:true },
 
   // ── June 18 (Thu) ──
-  { group:'A', date:'2026-06-18', day:'יום ה׳ 18/06', home:'צ\'כיה 🇨🇿', away:'דרום אפריקה 🇿🇦', gmtH:16, gmtM:0, venue:'Atlanta Stadium', city:'אטלנטה' },
-  { group:'B', date:'2026-06-18', day:'יום ה׳ 18/06', home:'שוויץ 🇨🇭', away:'בוסניה 🇧🇦', gmtH:19, gmtM:0, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
-  { group:'B', date:'2026-06-18', day:'יום ה׳ 18/06', home:'קנדה 🇨🇦', away:'קטר 🇶🇦', gmtH:22, gmtM:0, venue:'BC Place', city:'ונקובר' },
-  { group:'A', date:'2026-06-18', day:'יום ה׳ 18/06', home:'מקסיקו 🇲🇽', away:'קוריאה הדרומית 🇰🇷', gmtH:1, gmtM:0, venue:'Estadio Guadalajara', city:'זאפופן', nextDay:true },
+  { group:'A', date:'2026-06-18', day:'חמישי 18/06', home:'צ\'כיה 🇨🇿', away:'דרום אפריקה 🇿🇦', gmtH:16, gmtM:0, venue:'Atlanta Stadium', city:'אטלנטה' },
+  { group:'B', date:'2026-06-18', day:'חמישי 18/06', home:'שוויץ 🇨🇭', away:'בוסניה 🇧🇦', gmtH:19, gmtM:0, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
+  { group:'B', date:'2026-06-18', day:'חמישי 18/06', home:'קנדה 🇨🇦', away:'קטר 🇶🇦', gmtH:22, gmtM:0, venue:'BC Place', city:'ונקובר' },
+  { group:'A', date:'2026-06-18', day:'חמישי 18/06', home:'מקסיקו 🇲🇽', away:'קוריאה הדרומית 🇰🇷', gmtH:1, gmtM:0, venue:'Estadio Guadalajara', city:'זאפופן', nextDay:true },
 
   // ── June 19 (Fri) ──
-  { group:'D', date:'2026-06-19', day:'יום ו׳ 19/06', home:'ארה"ב 🇺🇸', away:'אוסטרליה 🇦🇺', gmtH:19, gmtM:0, venue:'Seattle Stadium', city:'סיאטל' },
-  { group:'C', date:'2026-06-19', day:'יום ו׳ 19/06', home:'סקוטלנד 🏴󠁧󠁢󠁳󠁣󠁴󠁿', away:'מרוקו 🇲🇦', gmtH:22, gmtM:0, venue:'Boston Stadium', city:'בוסטון' },
-  { group:'C', date:'2026-06-19', day:'יום ו׳ 19/06', home:'ברזיל 🇧🇷', away:'האיטי 🇭🇹', gmtH:0, gmtM:30, venue:'Philadelphia Stadium', city:'פילדלפיה', nextDay:true },
-  { group:'D', date:'2026-06-19', day:'יום ו׳ 19/06', home:'טורקיה 🇹🇷', away:'פרגוואי 🇵🇾', gmtH:3,  gmtM:0, venue:'San Francisco Bay Area Stadium', city:'סן פרנסיסקו', nextDay:true },
+  { group:'D', date:'2026-06-19', day:'שישי 19/06', home:'ארה"ב 🇺🇸', away:'אוסטרליה 🇦🇺', gmtH:19, gmtM:0, venue:'Seattle Stadium', city:'סיאטל' },
+  { group:'C', date:'2026-06-19', day:'שישי 19/06', home:'סקוטלנד 🏴󠁧󠁢󠁳󠁣󠁴󠁿', away:'מרוקו 🇲🇦', gmtH:22, gmtM:0, venue:'Boston Stadium', city:'בוסטון' },
+  { group:'C', date:'2026-06-19', day:'שישי 19/06', home:'ברזיל 🇧🇷', away:'האיטי 🇭🇹', gmtH:0, gmtM:30, venue:'Philadelphia Stadium', city:'פילדלפיה', nextDay:true },
+  { group:'D', date:'2026-06-19', day:'שישי 19/06', home:'טורקיה 🇹🇷', away:'פרגוואי 🇵🇾', gmtH:3,  gmtM:0, venue:'San Francisco Bay Area Stadium', city:'סן פרנסיסקו', nextDay:true },
 
   // ── June 20 (Sat) ──
   { group:'F', date:'2026-06-20', day:'שבת 20/06', home:'הולנד 🇳🇱', away:'שוודיה 🇸🇪', gmtH:17, gmtM:0, venue:'Houston Stadium', city:'יוסטון' },
@@ -632,20 +633,20 @@ const MATCHES = [
   { group:'A', date:'2026-06-24', day:'רביעי 24/06', home:'דרום אפריקה 🇿🇦', away:'קוריאה הדרומית 🇰🇷', gmtH:1, gmtM:0, venue:'Estadio Monterrey', city:'גוואדלופה', nextDay:true },
 
   // ── June 25 (Thu) ──
-  { group:'E', date:'2026-06-25', day:'יום ה׳ 25/06', home:'אקוודור 🇪🇨', away:'גרמניה 🇩🇪', gmtH:20, gmtM:0, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי' },
-  { group:'E', date:'2026-06-25', day:'יום ה׳ 25/06', home:'קוראסאו 🇨🇼', away:'חוף השנהב 🇨🇮', gmtH:20, gmtM:0, venue:'Philadelphia Stadium', city:'פילדלפיה' },
-  { group:'F', date:'2026-06-25', day:'יום ה׳ 25/06', home:'יפן 🇯🇵', away:'שוודיה 🇸🇪', gmtH:23, gmtM:0, venue:'Dallas Stadium', city:'דאלאס' },
-  { group:'F', date:'2026-06-25', day:'יום ה׳ 25/06', home:'תוניסיה 🇹🇳', away:'הולנד 🇳🇱', gmtH:23, gmtM:0, venue:'Kansas City Stadium', city:'קנזס סיטי' },
-  { group:'D', date:'2026-06-25', day:'יום ה׳ 25/06', home:'טורקיה 🇹🇷', away:'ארה"ב 🇺🇸', gmtH:2,  gmtM:0, venue:'Los Angeles Stadium', city:'לוס אנג\'לס', nextDay:true },
-  { group:'D', date:'2026-06-25', day:'יום ה׳ 25/06', home:'פרגוואי 🇵🇾', away:'אוסטרליה 🇦🇺', gmtH:2, gmtM:0, venue:'San Francisco Bay Area Stadium', city:'סן פרנסיסקו', nextDay:true },
+  { group:'E', date:'2026-06-25', day:'חמישי 25/06', home:'אקוודור 🇪🇨', away:'גרמניה 🇩🇪', gmtH:20, gmtM:0, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי' },
+  { group:'E', date:'2026-06-25', day:'חמישי 25/06', home:'קוראסאו 🇨🇼', away:'חוף השנהב 🇨🇮', gmtH:20, gmtM:0, venue:'Philadelphia Stadium', city:'פילדלפיה' },
+  { group:'F', date:'2026-06-25', day:'חמישי 25/06', home:'יפן 🇯🇵', away:'שוודיה 🇸🇪', gmtH:23, gmtM:0, venue:'Dallas Stadium', city:'דאלאס' },
+  { group:'F', date:'2026-06-25', day:'חמישי 25/06', home:'תוניסיה 🇹🇳', away:'הולנד 🇳🇱', gmtH:23, gmtM:0, venue:'Kansas City Stadium', city:'קנזס סיטי' },
+  { group:'D', date:'2026-06-25', day:'חמישי 25/06', home:'טורקיה 🇹🇷', away:'ארה"ב 🇺🇸', gmtH:2,  gmtM:0, venue:'Los Angeles Stadium', city:'לוס אנג\'לס', nextDay:true },
+  { group:'D', date:'2026-06-25', day:'חמישי 25/06', home:'פרגוואי 🇵🇾', away:'אוסטרליה 🇦🇺', gmtH:2, gmtM:0, venue:'San Francisco Bay Area Stadium', city:'סן פרנסיסקו', nextDay:true },
 
   // ── June 26 (Fri) ──
-  { group:'I', date:'2026-06-26', day:'יום ו׳ 26/06', home:'נורווגיה 🇳🇴', away:'צרפת 🇫🇷', gmtH:19, gmtM:0, venue:'Boston Stadium', city:'בוסטון' },
-  { group:'I', date:'2026-06-26', day:'יום ו׳ 26/06', home:'סנגל 🇸🇳', away:'עיראק 🇮🇶', gmtH:19, gmtM:0, venue:'Toronto Stadium', city:'טורונטו' },
-  { group:'H', date:'2026-06-26', day:'יום ו׳ 26/06', home:'כף ורדה 🇨🇻', away:'ערב הסעודית 🇸🇦', gmtH:0,  gmtM:0, venue:'Houston Stadium', city:'יוסטון', nextDay:true },
-  { group:'H', date:'2026-06-26', day:'יום ו׳ 26/06', home:'אורוגוואי 🇺🇾', away:'ספרד 🇪🇸', gmtH:0,  gmtM:0, venue:'Estadio Guadalajara', city:'זאפופן', nextDay:true },
-  { group:'G', date:'2026-06-26', day:'יום ו׳ 26/06', home:'מצרים 🇪🇬', away:'איראן 🇮🇷', gmtH:3,  gmtM:0, venue:'Seattle Stadium', city:'סיאטל', nextDay:true },
-  { group:'G', date:'2026-06-26', day:'יום ו׳ 26/06', home:'ניו זילנד 🇳🇿', away:'בלגיה 🇧🇪', gmtH:3,  gmtM:0, venue:'BC Place', city:'ונקובר', nextDay:true },
+  { group:'I', date:'2026-06-26', day:'שישי 26/06', home:'נורווגיה 🇳🇴', away:'צרפת 🇫🇷', gmtH:19, gmtM:0, venue:'Boston Stadium', city:'בוסטון' },
+  { group:'I', date:'2026-06-26', day:'שישי 26/06', home:'סנגל 🇸🇳', away:'עיראק 🇮🇶', gmtH:19, gmtM:0, venue:'Toronto Stadium', city:'טורונטו' },
+  { group:'H', date:'2026-06-26', day:'שישי 26/06', home:'כף ורדה 🇨🇻', away:'ערב הסעודית 🇸🇦', gmtH:0,  gmtM:0, venue:'Houston Stadium', city:'יוסטון', nextDay:true },
+  { group:'H', date:'2026-06-26', day:'שישי 26/06', home:'אורוגוואי 🇺🇾', away:'ספרד 🇪🇸', gmtH:0,  gmtM:0, venue:'Estadio Guadalajara', city:'זאפופן', nextDay:true },
+  { group:'G', date:'2026-06-26', day:'שישי 26/06', home:'מצרים 🇪🇬', away:'איראן 🇮🇷', gmtH:3,  gmtM:0, venue:'Seattle Stadium', city:'סיאטל', nextDay:true },
+  { group:'G', date:'2026-06-26', day:'שישי 26/06', home:'ניו זילנד 🇳🇿', away:'בלגיה 🇧🇪', gmtH:3,  gmtM:0, venue:'BC Place', city:'ונקובר', nextDay:true },
 
   // ── June 27 (Sat) ──
   { group:'L', date:'2026-06-27', day:'שבת 27/06', home:'פנמה 🇵🇦', away:'אנגליה 🏴󠁧󠁢󠁥󠁮󠁧󠁿', gmtH:21, gmtM:0, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי' },
@@ -671,12 +672,12 @@ const KNOCKOUT = [
       { date:'רביעי 01/07', gmtH:16, city:'אטלנטה', venue:'Atlanta Stadium' },
       { date:'רביעי 01/07', gmtH:20, city:'סיאטל', venue:'Seattle Stadium' },
       { date:'רביעי 01/07', gmtH:20, city:'סן פרנסיסקו', venue:'San Francisco Bay Area Stadium' },
-      { date:'יום ה׳ 02/07', gmtH:19, city:'לוס אנג\'לס', venue:'Los Angeles Stadium' },
-      { date:'יום ה׳ 02/07', gmtH:23, city:'טורונטו', venue:'Toronto Stadium' },
-      { date:'יום ה׳ 02/07', gmtH:3, city:'ונקובר', venue:'BC Place', nextDay:true },
-      { date:'יום ו׳ 03/07', gmtH:18, city:'דאלאס', venue:'Dallas Stadium' },
-      { date:'יום ו׳ 03/07', gmtH:22, city:'מיאמי', venue:'Miami Stadium' },
-      { date:'יום ו׳ 03/07', gmtH:1, gmtM:30, city:'קנזס סיטי', venue:'Kansas City Stadium', nextDay:true },
+      { date:'חמישי 02/07', gmtH:19, city:'לוס אנג\'לס', venue:'Los Angeles Stadium' },
+      { date:'חמישי 02/07', gmtH:23, city:'טורונטו', venue:'Toronto Stadium' },
+      { date:'חמישי 02/07', gmtH:3, city:'ונקובר', venue:'BC Place', nextDay:true },
+      { date:'שישי 03/07', gmtH:18, city:'דאלאס', venue:'Dallas Stadium' },
+      { date:'שישי 03/07', gmtH:22, city:'מיאמי', venue:'Miami Stadium' },
+      { date:'שישי 03/07', gmtH:1, gmtM:30, city:'קנזס סיטי', venue:'Kansas City Stadium', nextDay:true },
     ]
   },
   {
@@ -695,8 +696,8 @@ const KNOCKOUT = [
   {
     round: 'רבע גמר (Quarterfinals)',
     matches: [
-      { date:'יום ה׳ 09/07', gmtH:20, city:'בוסטון', venue:'Boston Stadium' },
-      { date:'יום ו׳ 10/07', gmtH:19, city:'לוס אנג\'לס', venue:'Los Angeles Stadium' },
+      { date:'חמישי 09/07', gmtH:20, city:'בוסטון', venue:'Boston Stadium' },
+      { date:'שישי 10/07', gmtH:19, city:'לוס אנג\'לס', venue:'Los Angeles Stadium' },
       { date:'שבת 11/07', gmtH:20, city:'מיאמי', venue:'Miami Stadium' },
       { date:'שבת 11/07', gmtH:1, city:'קנזס סיטי', venue:'Kansas City Stadium', nextDay:true },
     ]
@@ -770,14 +771,13 @@ function renderGroups() {
         ${gMatches.map(m => `
           <div class="match-item">
             <div class="match-date">
-              <div class="day">${m.day.split(' ')[0]}</div>
-              <div>${m.day.split(' ')[1] || ''}</div>
+              <div class="day">${m.day}</div>
+              <div class="match-time-inline">${ilTime(m.gmtH, m.gmtM)}</div>
             </div>
             <div class="match-teams">
               ${m.home} <span class="vs">נגד</span> ${m.away}
               ${scoreHtml(m)}
             </div>
-            <div class="match-time">${ilTime(m.gmtH, m.gmtM)}</div>
             <div class="match-venue">${m.city}</div>
           </div>
         `).join('')}
