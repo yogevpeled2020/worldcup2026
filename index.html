@@ -365,6 +365,64 @@
     .groups-grid { grid-template-columns: 1fr; }
   }
 
+  /* ── LIVE SCORES ── */
+  .live-bar {
+    background: #0a1f14;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .live-bar-left { display:flex; align-items:center; gap:10px; flex:1; }
+  #updateBtn {
+    background: var(--gold);
+    border: none;
+    color: #0a1f14;
+    font-family: 'Heebo', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 7px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  #updateBtn:hover { opacity: 0.85; }
+  #updateBtn:active { transform: scale(0.97); }
+  #updateBtn:disabled { opacity: 0.5; cursor: default; }
+  #updateStatus {
+    font-size: 0.72rem;
+    color: var(--gray);
+    flex: 1;
+  }
+  #updateStatus .ok { color: #4caf7d; }
+  #updateStatus .err { color: var(--live); }
+  #lastUpdated { font-size: 0.68rem; color: var(--gray); }
+
+  .score-badge {
+    display: inline-block;
+    background: rgba(200,168,75,0.15);
+    border: 1px solid rgba(200,168,75,0.3);
+    color: var(--gold-light);
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 1px 7px;
+    border-radius: 6px;
+    margin-right: 6px;
+    direction: ltr;
+  }
+  .score-final { background: rgba(76,175,125,0.1); border-color: rgba(76,175,125,0.3); color: #4caf7d; }
+  .score-live  { background: rgba(227,64,64,0.12); border-color: rgba(227,64,64,0.4);  color: #e34040; animation: blink 1.2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  .spin { display: inline-block; animation: spin 0.8s linear infinite; }
+  @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
   /* ── ISRAEL TIME NOTE ── */
   .il-note {
     text-align: center;
@@ -431,6 +489,14 @@
 </div>
 
 <main>
+  <div class="live-bar">
+    <div class="live-bar-left">
+      <span id="scoresStatusDot" style="font-size:1.1rem">⏳</span>
+      <div id="updateStatus">טוען תוצאות...</div>
+    </div>
+    <div id="lastUpdated"></div>
+  </div>
+
   <div class="il-note">
     ⏰ שעות מוצגות <strong>לפי שעון ישראל (IDT = GMT+3)</strong> | עדכן לשעון קיץ 2026
   </div>
@@ -709,6 +775,7 @@ function renderGroups() {
             </div>
             <div class="match-teams">
               ${m.home} <span class="vs">נגד</span> ${m.away}
+              ${scoreHtml(m)}
             </div>
             <div class="match-time">${ilTime(m.gmtH, m.gmtM)}</div>
             <div class="match-venue">${m.city}</div>
@@ -853,7 +920,158 @@ function renderCurrent() {
   else renderTimeline();
 }
 
+// ──────────────────────────────────────────────
+// SCORES — נטענים מ-scores.json שמעודכן פעמיים ביום ע"י GitHub Action
+// ──────────────────────────────────────────────
+
+// key: "EnglishTeamName|EnglishTeamName" → { score, status, minute, penalty }
+let scoresCache = {};
+
+// מיפוי שמות עברי → אנגלי כפי שמגיע מה-API
+const TEAM_NAME_MAP = {
+  'מקסיקו':           'Mexico',
+  'דרום אפריקה':      'South Africa',
+  'קוריאה הדרומית':   'South Korea',
+  'צ\'כיה':           'Czech Republic',
+  'קנדה':             'Canada',
+  'בוסניה':           'Bosnia and Herzegovina',
+  'קטר':              'Qatar',
+  'שוויץ':            'Switzerland',
+  'ברזיל':            'Brazil',
+  'מרוקו':            'Morocco',
+  'האיטי':            'Haiti',
+  'סקוטלנד':          'Scotland',
+  'ארה"ב':            'USA',
+  'פרגוואי':          'Paraguay',
+  'אוסטרליה':         'Australia',
+  'טורקיה':           'Turkey',
+  'גרמניה':           'Germany',
+  'קוראסאו':          'Curacao',
+  'חוף השנהב':        'Ivory Coast',
+  'אקוודור':          'Ecuador',
+  'הולנד':            'Netherlands',
+  'יפן':              'Japan',
+  'שוודיה':           'Sweden',
+  'תוניסיה':          'Tunisia',
+  'בלגיה':            'Belgium',
+  'מצרים':            'Egypt',
+  'איראן':            'Iran',
+  'ניו זילנד':        'New Zealand',
+  'ספרד':             'Spain',
+  'כף ורדה':          'Cape Verde',
+  'ערב הסעודית':      'Saudi Arabia',
+  'אורוגוואי':        'Uruguay',
+  'צרפת':             'France',
+  'סנגל':             'Senegal',
+  'עיראק':            'Iraq',
+  'נורווגיה':         'Norway',
+  'ארגנטינה':         'Argentina',
+  'אלג\'יריה':        'Algeria',
+  'אוסטריה':          'Austria',
+  'ירדן':             'Jordan',
+  'פורטוגל':          'Portugal',
+  'קונגו DR':         'DR Congo',
+  'אוזבקיסטן':        'Uzbekistan',
+  'קולומביה':         'Colombia',
+  'אנגליה':           'England',
+  'קרואטיה':          'Croatia',
+  'גאנה':             'Ghana',
+  'פנמה':             'Panama',
+};
+
+function hebrewToEn(hebrewName) {
+  // strip flag emojis
+  const stripped = hebrewName.replace(/[\u{1F1E0}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|\uFE0F|[\u{1F3FB}-\u{1F3FF}]|[\u{1F004}-\u{1F0CF}]/gu, '').trim();
+  return TEAM_NAME_MAP[stripped] || stripped;
+}
+
+function matchKey(m) {
+  return `${hebrewToEn(m.home)}|${hebrewToEn(m.away)}`;
+}
+
+// נרמול שם נבחרת מה-API לצורך השוואה גמישה
+function normalizeApiName(name) {
+  return (name || '').toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace('côtedivoire','ivorycoast')
+    .replace('republicofireland','ireland')
+    .replace('bosniaandherzegovina','bosnia');
+}
+
+function buildScoresCache(matches) {
+  scoresCache = {};
+  matches.forEach(entry => {
+    const key = `${entry.home}|${entry.away}`;
+    scoresCache[key] = entry;
+    // גם הפוך — ל-API שמחזיר שמות קצת שונים
+    const normHome = normalizeApiName(entry.home);
+    const normAway = normalizeApiName(entry.away);
+    scoresCache[`__norm__${normHome}|${normAway}`] = entry;
+  });
+}
+
+function findScore(m) {
+  // ניסיון 1: מיפוי ישיר
+  const key = matchKey(m);
+  if (scoresCache[key]) return scoresCache[key];
+
+  // ניסיון 2: נרמול
+  const normHome = normalizeApiName(hebrewToEn(m.home));
+  const normAway = normalizeApiName(hebrewToEn(m.away));
+  return scoresCache[`__norm__${normHome}|${normAway}`] || null;
+}
+
+function scoreHtml(m) {
+  const s = findScore(m);
+  if (!s) return '';
+  const cls = s.status === 'live' ? 'score-live' : 'score-final';
+  const label = s.status === 'live' ? `🔴 ${s.minute ? s.minute + '\'' : ''} ` : '';
+  let html = `<span class="score-badge ${cls}">${label}${s.score}</span>`;
+  if (s.penalty) html += `<span class="score-badge" style="font-size:0.62rem;opacity:0.8">(פנ׳ ${s.penalty})</span>`;
+  return html;
+}
+
+async function loadScores() {
+  const status = document.getElementById('updateStatus');
+  const dot    = document.getElementById('scoresStatusDot');
+  const lastUp = document.getElementById('lastUpdated');
+
+  try {
+    // cache-bust קל כדי לא לקבל גרסה ישנה מהדפדפן
+    const res = await fetch(`scores.json?_=${Math.floor(Date.now() / 60000)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    buildScoresCache(data.matches || []);
+    const count = (data.matches || []).length;
+
+    if (count === 0) {
+      dot.textContent = '📅';
+      status.innerHTML = 'הטורניר עוד לא התחיל — אין תוצאות';
+    } else {
+      const live = (data.matches || []).filter(m => m.status === 'live').length;
+      dot.textContent = live > 0 ? '🔴' : '✅';
+      status.innerHTML = live > 0
+        ? `<span class="ok">${live} משחקים חיים עכשיו · ${count} תוצאות</span>`
+        : `<span class="ok">${count} תוצאות סגורות</span>`;
+    }
+
+    if (data.updated) {
+      const d = new Date(data.updated);
+      lastUp.textContent = `עודכן: ${d.toLocaleDateString('he-IL')} ${d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}`;
+    }
+
+    renderCurrent();
+
+  } catch (e) {
+    dot.textContent = '⚠️';
+    status.innerHTML = `<span style="color:var(--gray)">scores.json לא נטען (${e.message})</span>`;
+    console.warn('scores.json load failed:', e);
+  }
+}
+
 // ── Init ──
+loadScores();
 renderGroups();
 </script>
 </body>
