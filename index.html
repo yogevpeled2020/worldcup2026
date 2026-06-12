@@ -927,12 +927,12 @@ function renderCurrent() {
 // key: "EnglishTeamName|EnglishTeamName" → { score, status, minute, penalty }
 let scoresCache = {};
 
-// מיפוי שמות עברי → אנגלי כפי שמגיע מה-API
+// מיפוי שמות עברי → אנגלי כפי שמגיע מ-football-data.org
 const TEAM_NAME_MAP = {
   'מקסיקו':           'Mexico',
   'דרום אפריקה':      'South Africa',
   'קוריאה הדרומית':   'South Korea',
-  'צ\'כיה':           'Czech Republic',
+  'צ\'כיה':           'Czechia',
   'קנדה':             'Canada',
   'בוסניה':           'Bosnia and Herzegovina',
   'קטר':              'Qatar',
@@ -944,10 +944,10 @@ const TEAM_NAME_MAP = {
   'ארה"ב':            'USA',
   'פרגוואי':          'Paraguay',
   'אוסטרליה':         'Australia',
-  'טורקיה':           'Turkey',
+  'טורקיה':           'Türkiye',
   'גרמניה':           'Germany',
-  'קוראסאו':          'Curacao',
-  'חוף השנהב':        'Ivory Coast',
+  'קוראסאו':          'Curaçao',
+  'חוף השנהב':        "Côte d'Ivoire",
   'אקוודור':          'Ecuador',
   'הולנד':            'Netherlands',
   'יפן':              'Japan',
@@ -993,9 +993,14 @@ function matchKey(m) {
 function normalizeApiName(name) {
   return (name || '').toLowerCase()
     .replace(/[^a-z0-9]/g, '')
+    .replace('cotedivoire','ivorycoast')
     .replace('côtedivoire','ivorycoast')
     .replace('republicofireland','ireland')
-    .replace('bosniaandherzegovina','bosnia');
+    .replace('bosniaandherzegovina','bosnia')
+    .replace('czechrepublic','czechia')
+    .replace('türkiye','turkey')
+    .replace('turkiye','turkey')
+    .replace('curaçao','curacao');
 }
 
 function buildScoresCache(matches) {
