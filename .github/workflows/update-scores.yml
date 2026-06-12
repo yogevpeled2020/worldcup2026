@@ -31,59 +31,70 @@ jobs:
           github_token = os.environ["GITHUB_TOKEN"]
           repo         = os.environ["REPO"]
 
-          # ── 1. שלוף תוצאות מ-API-Football ──
           print(f"API key: {api_key[:6]}...")
 
-          urls_to_try = [
-              ("v3.football.api-sports.io", "https://v3.football.api-sports.io/fixtures?league=1&season=2026", "x-apisports-key"),
-              ("v3.api-football.com",       "https://v3.api-football.com/fixtures?league=1&season=2026",       "x-rapidapi-key"),
-          ]
+          # football-data.org — World Cup 2026 = competition WC, season 2026
+          url = "https://api.football-data.org/v4/competitions/WC/matches?season=2026"
+          req = urllib.request.Request(url, headers={"X-Auth-Token": api_key})
 
-          fixtures = []
-          for name, url, hkey in urls_to_try:
-              print(f"Trying {name}...")
-              req = urllib.request.Request(url, headers={hkey: api_key})
-              try:
-                  with urllib.request.urlopen(req, timeout=15) as r:
-                      data = json.loads(r.read().decode())
-                  errors = data.get("errors", {})
-                  print(f"  errors: {errors}  count: {len(data.get('response',[]))}")
-                  if not errors or errors in ([], {}):
-                      fixtures = data.get("response", [])
-                      print(f"  OK - {len(fixtures)} fixtures")
-                      break
-              except Exception as e:
-                  print(f"  Failed: {e}")
+          try:
+              with urllib.request.urlopen(req, timeout=15) as r:
+                  data = json.loads(r.read().decode())
+          except urllib.error.HTTPError as e:
+              body = e.read().decode()
+              print(f"HTTP {e.code}: {body}")
+              exit(1)
+          except Exception as e:
+              print(f"Request failed: {e}")
+              exit(1)
 
-          statuses = set(f.get("fixture",{}).get("status",{}).get("short","?") for f in fixtures)
-          print(f"Statuses: {statuses}")
+          all_matches = data.get("matches", [])
+          print(f"Total matches from API: {len(all_matches)}")
+
+          # סטטוסים: SCHEDULED, TIMED, IN_PLAY, PAUSED, FINISHED, SUSPENDED, POSTPONED, CANCELLED
+          statuses = set(m.get("status","") for m in all_matches)
+          print(f"Statuses found: {statuses}")
 
           matches = []
-          for f in fixtures:
-              fix   = f.get("fixture", {})
-              teams = f.get("teams", {})
-              goals = f.get("goals", {})
-              score = f.get("score", {})
-              st    = fix.get("status", {}).get("short", "")
-              if st in ("NS", "TBD"):
+          for m in all_matches:
+              status = m.get("status", "")
+              if status in ("SCHEDULED", "TIMED", "POSTPONED", "CANCELLED", "SUSPENDED"):
                   continue
-              hg = goals.get("home")
-              ag = goals.get("away")
+
+              home = m.get("homeTeam", {}).get("name", "")
+              away = m.get("awayTeam", {}).get("name", "")
+              score_data = m.get("score", {})
+              ft = score_data.get("fullTime", {})
+              hg = ft.get("home")
+              ag = ft.get("away")
+
+              # אם המשחק חי — קח את התוצאה הנוכחית
+              if hg is None or ag is None:
+                  ht = score_data.get("halfTime", {})
+                  hg = ht.get("home", 0)
+                  ag = ht.get("away", 0)
+
               if hg is None or ag is None:
                   continue
+
+              is_live = status in ("IN_PLAY", "PAUSED")
+
               entry = {
-                  "home":   teams.get("home",{}).get("name",""),
-                  "away":   teams.get("away",{}).get("name",""),
+                  "home":   home,
+                  "away":   away,
                   "score":  f"{hg}-{ag}",
-                  "status": "live" if st in ("1H","2H","ET","BT","P","INT","LIVE") else "final",
-                  "minute": fix.get("status",{}).get("elapsed"),
-                  "date":   fix.get("date","")[:10],
+                  "status": "live" if is_live else "final",
+                  "minute": m.get("minute"),
+                  "date":   (m.get("utcDate",""))[:10],
               }
-              pen = score.get("penalty", {})
-              if pen.get("home") is not None:
+
+              # פנדלים
+              pen = score_data.get("penalties", {})
+              if pen and pen.get("home") is not None:
                   entry["penalty"] = f"{pen['home']}-{pen['away']}"
+
               matches.append(entry)
-              print(f"  + {entry['home']} {entry['score']} {entry['away']}")
+              print(f"  + {home} {hg}-{ag} {away} [{status}]")
 
           output = {
               "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -91,27 +102,27 @@ jobs:
               "matches": matches,
           }
           content_str = json.dumps(output, ensure_ascii=False, indent=2)
+          print(f"\nTotal results to write: {len(matches)}")
 
-          # ── 2. עדכן scores.json דרך GitHub API (עוקף git לגמרי) ──
-          gh_api = f"https://api.github.com/repos/{repo}/contents/scores.json"
+          # ── עדכן scores.json דרך GitHub API ──
+          gh_api  = f"https://api.github.com/repos/{repo}/contents/scores.json"
           headers = {
               "Authorization": f"token {github_token}",
-              "Accept": "application/vnd.github+json",
-              "Content-Type": "application/json",
+              "Accept":        "application/vnd.github+json",
+              "Content-Type":  "application/json",
           }
 
-          # קבל את ה-SHA הנוכחי של הקובץ
+          # קבל SHA נוכחי
           req = urllib.request.Request(gh_api, headers=headers)
           try:
               with urllib.request.urlopen(req, timeout=10) as r:
                   current = json.loads(r.read().decode())
               sha = current["sha"]
-              print(f"Current scores.json SHA: {sha[:8]}")
+              print(f"Current SHA: {sha[:8]}")
           except Exception as e:
               sha = None
-              print(f"No existing file (will create): {e}")
+              print(f"No existing file: {e}")
 
-          # שלח את התוכן החדש
           payload = {
               "message": f"🤖 Update scores {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
               "content": base64.b64encode(content_str.encode()).decode(),
@@ -129,7 +140,6 @@ jobs:
               with urllib.request.urlopen(req, timeout=15) as r:
                   result = json.loads(r.read().decode())
               print(f"✅ scores.json updated! commit: {result['commit']['sha'][:8]}")
-              print(f"   Written {len(matches)} results")
           except urllib.error.HTTPError as e:
               print(f"❌ GitHub API error: {e.code} {e.read().decode()}")
               exit(1)
