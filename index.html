@@ -817,11 +817,27 @@ function renderTimeline() {
   const container = document.getElementById('timelineContent');
   container.innerHTML = '';
 
-  // Group by date
+  // קבץ לפי תאריך ישראלי — משחקים עם nextDay:true שייכים ליום הבא
+  function ilDate(m) {
+    const [y, mo, d] = m.date.split('-').map(Number);
+    let day = d;
+    let month = mo;
+    let year = y;
+    if (m.nextDay) {
+      // הוסף יום אחד
+      const dt = new Date(y, mo - 1, d + 1);
+      year  = dt.getFullYear();
+      month = dt.getMonth() + 1;
+      day   = dt.getDate();
+    }
+    return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  }
+
   const byDate = {};
   MATCHES.filter(matchVisible).forEach(m => {
-    if (!byDate[m.date]) byDate[m.date] = [];
-    byDate[m.date].push(m);
+    const key = ilDate(m);
+    if (!byDate[key]) byDate[key] = [];
+    byDate[key].push(m);
   });
 
   const sortedDates = Object.keys(byDate).sort();
@@ -832,13 +848,21 @@ function renderTimeline() {
       const gb = (b.gmtH + (b.nextDay ? 24 : 0)) * 60 + (b.gmtM || 0);
       return ga - gb;
     });
-    const dayLabel = ms[0].day;
+
+    // תאריך ישראלי לתצוגה
+    const ilDayNum = parseInt(date.split('-')[2]);
+    const ilMonth  = parseInt(date.split('-')[1]);
+    const monthNames = ['','ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+    // מצא יום שבוע
+    const jsDate = new Date(date);
+    const dowHe = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+    const dayLabel = `${dowHe[jsDate.getDay()]} ${ilDayNum}/${String(ilMonth).padStart(2,'0')}`;
 
     const block = document.createElement('div');
     block.className = 'day-block';
     block.innerHTML = `
       <div class="day-header">
-        <div class="day-num">${parseInt(date.split('-')[2])}</div>
+        <div class="day-num">${ilDayNum}</div>
         <div>
           <div class="day-title">${dayLabel}</div>
           <div class="day-subtitle">${ms.length} משחקים</div>
