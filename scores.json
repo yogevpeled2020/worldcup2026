@@ -1,5 +1,22 @@
 {
-  "updated": "2026-06-12T11:33:54Z",
-  "count": 0,
-  "matches": []
+  "updated": "2026-06-12T11:42:18Z",
+  "count": 2,
+  "matches": [
+    {
+      "home": "Mexico",
+      "away": "South Africa",
+      "score": "2-0",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-11"
+    },
+    {
+      "home": "South Korea",
+      "away": "Czechia",
+      "score": "2-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-12"
+    }
+  ]
 }
