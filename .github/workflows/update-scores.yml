@@ -16,7 +16,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # נדרש כדי למנוע push conflicts
+          ref: main
+          fetch-depth: 0
 
       - name: Fetch scores from API-Football
         env:
@@ -35,10 +36,9 @@ jobs:
 
           print(f"API key found: {api_key[:6]}...")
 
-          # נסה גם v3 וגם api-football ישירות
           urls_to_try = [
               ("v3.football.api-sports.io", "https://v3.football.api-sports.io/fixtures?league=1&season=2026", "x-apisports-key"),
-              ("api-football.com",          "https://v3.api-football.com/fixtures?league=1&season=2026",       "x-rapidapi-key"),
+              ("v3.api-football.com",       "https://v3.api-football.com/fixtures?league=1&season=2026",       "x-rapidapi-key"),
           ]
 
           data = None
@@ -49,14 +49,13 @@ jobs:
                   with urllib.request.urlopen(req, timeout=15) as resp:
                       data = json.loads(resp.read().decode())
                   errors = data.get("errors", {})
+                  count  = len(data.get("response", []))
                   print(f"  errors: {errors}")
-                  print(f"  response count: {len(data.get('response', []))}")
+                  print(f"  response count: {count}")
                   if not errors or errors == [] or errors == {}:
                       print(f"  SUCCESS with {name}")
                       break
-                  else:
-                      print(f"  API errors, trying next...")
-                      data = None
+                  data = None
               except Exception as e:
                   print(f"  Request failed: {e}")
 
@@ -65,22 +64,17 @@ jobs:
               exit(1)
 
           fixtures = data.get("response", [])
-          print(f"Total fixtures from API: {len(fixtures)}")
-
-          # הדפס סטטוסים ייחודיים לדיבאג
-          statuses = set()
-          for f in fixtures:
-              statuses.add(f.get("fixture",{}).get("status",{}).get("short","?"))
+          statuses = set(f.get("fixture",{}).get("status",{}).get("short","?") for f in fixtures)
           print(f"Statuses found: {statuses}")
 
           matches = []
           for f in fixtures:
-              fix   = f.get("fixture", {})
-              teams = f.get("teams", {})
-              goals = f.get("goals", {})
-              score = f.get("score", {})
-
+              fix          = f.get("fixture", {})
+              teams        = f.get("teams", {})
+              goals        = f.get("goals", {})
+              score        = f.get("score", {})
               status_short = fix.get("status", {}).get("short", "")
+
               if status_short in ("NS", "TBD"):
                   continue
 
@@ -123,11 +117,16 @@ jobs:
           print(f"Written {len(matches)} results to scores.json")
           EOF
 
-      - name: Commit scores.json if changed
+      - name: Commit and push scores.json
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main
+          git fetch origin main
+          git reset --soft origin/main
           git add scores.json
-          git diff --cached --quiet || git commit -m "🤖 Update scores $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🤖 Update scores $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push origin main
+          fi
