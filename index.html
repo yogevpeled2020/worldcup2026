@@ -433,6 +433,60 @@
   .spin { display: inline-block; animation: spin 0.8s linear infinite; }
   @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
+  /* ── STANDINGS ── */
+  .standings-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .standings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+  .standings-table th {
+    background: rgba(0,0,0,0.2);
+    color: var(--gray);
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 6px 8px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+  .standings-table th:first-child { text-align: right; padding-right: 12px; }
+  .standings-table td {
+    padding: 8px 8px;
+    text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    color: var(--white);
+  }
+  .standings-table td:first-child { text-align: right; padding-right: 12px; }
+  .standings-table tr:hover td { background: rgba(200,168,75,0.05); }
+
+  .st-pos {
+    font-weight: 700;
+    font-size: 0.7rem;
+    width: 20px;
+    color: var(--gray);
+  }
+  .st-pos.qualify { color: #4caf7d; }
+  .st-pos.third   { color: var(--gold); }
+
+  .st-team {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .st-pts {
+    font-weight: 900;
+    color: var(--gold-light);
+    font-size: 0.85rem;
+  }
+  .st-gd.pos { color: #4caf7d; }
+  .st-gd.neg { color: #e34040; }
+
   /* ── ISRAEL TIME NOTE ── */
   .il-note {
     text-align: center;
@@ -492,6 +546,7 @@
   <div class="view-toggle">
     <button class="view-btn active" id="vbtn-groups" onclick="setView('groups')">⊞ לפי קבוצות</button>
     <button class="view-btn" id="vbtn-timeline" onclick="setView('timeline')">≡ לפי תאריך</button>
+    <button class="view-btn" id="vbtn-standings" onclick="setView('standings')">🏅 טבלאות</button>
   </div>
 
   <div class="search-wrap">
@@ -528,6 +583,12 @@
   <div id="timelineView" class="timeline-view">
     <div class="section-label">לוח משחקים לפי תאריך</div>
     <div id="timelineContent"></div>
+  </div>
+
+  <!-- ═══ STANDINGS VIEW ═══ -->
+  <div id="standingsView" style="display:none">
+    <div class="section-label">טבלאות בתים – מחושב מתוצאות בפועל</div>
+    <div class="groups-grid" id="standingsGrid"></div>
   </div>
 </main>
 
@@ -945,14 +1006,113 @@ function setView(v) {
   currentView = v;
   document.getElementById('vbtn-groups').classList.toggle('active', v === 'groups');
   document.getElementById('vbtn-timeline').classList.toggle('active', v === 'timeline');
-  document.getElementById('groupsView').style.display = v === 'groups' ? 'block' : 'none';
-  document.getElementById('timelineView').style.display = v === 'timeline' ? 'block' : 'none';
+  document.getElementById('vbtn-standings').classList.toggle('active', v === 'standings');
+  document.getElementById('groupsView').style.display    = v === 'groups'    ? 'block' : 'none';
+  document.getElementById('timelineView').style.display  = v === 'timeline'  ? 'block' : 'none';
+  document.getElementById('standingsView').style.display = v === 'standings' ? 'block' : 'none';
   renderCurrent();
+}
+
+// ── Standings ──
+function calcStandings() {
+  // בנה טבלה לכל בית
+  const tables = {};
+  for (const letter of Object.keys(GROUPS)) {
+    tables[letter] = {};
+    for (const teamHe of GROUPS[letter].teams) {
+      const nameStripped = teamHe.replace(/[\u{1F1E0}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|\uFE0F|[\u{1F3FB}-\u{1F3FF}]|[\u{1F004}-\u{1F0CF}]/gu,'').trim();
+      tables[letter][nameStripped] = { name: teamHe, p:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 };
+    }
+  }
+
+  // עבור על כל משחק שהסתיים
+  MATCHES.forEach(m => {
+    const s = findScore(m);
+    if (!s || s.status !== 'final') return;
+
+    // שמות עברית
+    const homeStripped = m.home.replace(/[\u{1F1E0}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|\uFE0F|[\u{1F3FB}-\u{1F3FF}]|[\u{1F004}-\u{1F0CF}]/gu,'').trim();
+    const awayStripped = m.away.replace(/[\u{1F1E0}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|\uFE0F|[\u{1F3FB}-\u{1F3FF}]|[\u{1F004}-\u{1F0CF}]/gu,'').trim();
+
+    const grp = tables[m.group];
+    if (!grp || !grp[homeStripped] || !grp[awayStripped]) return;
+
+    // הניקוד ב-scores.json הוא home-away (לפני ההיפוך לתצוגה)
+    const parts = s.score.split('-');
+    const hg = parseInt(parts[0]);
+    const ag = parseInt(parts[1]);
+    if (isNaN(hg) || isNaN(ag)) return;
+
+    const h = grp[homeStripped];
+    const a = grp[awayStripped];
+
+    h.p++; h.gf += hg; h.ga += ag;
+    a.p++; a.gf += ag; a.ga += hg;
+
+    if (hg > ag)      { h.w++; h.pts+=3; a.l++; }
+    else if (hg < ag) { a.w++; a.pts+=3; h.l++; }
+    else              { h.d++; h.pts++; a.d++; a.pts++; }
+  });
+
+  return tables;
+}
+
+function renderStandings() {
+  const grid = document.getElementById('standingsGrid');
+  grid.innerHTML = '';
+  const tables = calcStandings();
+
+  for (const [letter, gdata] of Object.entries(GROUPS)) {
+    const rows = Object.values(tables[letter])
+      .sort((a,b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        const gdB = b.gf - b.ga, gdA = a.gf - a.ga;
+        if (gdB !== gdA) return gdB - gdA;
+        return b.gf - a.gf;
+      });
+
+    const card = document.createElement('div');
+    card.className = 'standings-card';
+    card.innerHTML = `
+      <div class="group-header">
+        <div class="group-letter" style="background:${gdata.color}">${letter}</div>
+        <div>
+          <h2>קבוצה ${letter}</h2>
+        </div>
+      </div>
+      <table class="standings-table">
+        <thead>
+          <tr>
+            <th>#</th><th style="text-align:right">נבחרת</th>
+            <th>מ'</th><th>נ'</th><th>ת'</th><th>ה'</th>
+            <th>שע'</th><th>הפ'</th><th>נק'</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => {
+            const gd = r.gf - r.ga;
+            const posClass = i < 2 ? 'qualify' : i === 2 ? 'third' : '';
+            const gdClass  = gd > 0 ? 'pos' : gd < 0 ? 'neg' : '';
+            return `<tr>
+              <td class="st-pos ${posClass}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</td>
+              <td><div class="st-team">${r.name}</div></td>
+              <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td>
+              <td>${r.gf}:${r.ga}</td>
+              <td class="st-gd ${gdClass}">${gd > 0 ? '+'+gd : gd}</td>
+              <td class="st-pts">${r.pts}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+    grid.appendChild(card);
+  }
 }
 
 function renderCurrent() {
   if (currentView === 'groups') renderGroups();
-  else renderTimeline();
+  else if (currentView === 'timeline') renderTimeline();
+  else if (currentView === 'standings') renderStandings();
 }
 
 // ──────────────────────────────────────────────
