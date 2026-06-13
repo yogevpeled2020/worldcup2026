@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-13T00:19:41Z",
-  "count": 3,
+  "updated": "2026-06-13T03:47:13Z",
+  "count": 4,
   "matches": [
     {
       "home": "Mexico",
@@ -25,6 +25,14 @@
       "status": "final",
       "minute": null,
       "date": "2026-06-12"
+    },
+    {
+      "home": "United States",
+      "away": "Paraguay",
+      "score": "4-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-13"
     }
   ]
 }
