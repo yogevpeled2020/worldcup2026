@@ -424,6 +424,7 @@
     border-radius: 6px;
     margin-right: 6px;
     direction: ltr;
+    unicode-bidi: embed;
   }
   .score-final { background: rgba(76,175,125,0.1); border-color: rgba(76,175,125,0.3); color: #4caf7d; }
   .score-live  { background: rgba(227,64,64,0.12); border-color: rgba(227,64,64,0.4);  color: #e34040; animation: blink 1.2s infinite; }
@@ -1064,10 +1065,17 @@ function findScore(m) {
 function scoreHtml(m) {
   const s = findScore(m);
   if (!s) return '';
+  // ב-RTL: הבית מימין, האורח משמאל — הפוך את הניקוד
+  const parts = s.score.split('-');
+  const rtlScore = parts.length === 2 ? `${parts[1]}-${parts[0]}` : s.score;
   const cls = s.status === 'live' ? 'score-live' : 'score-final';
-  const label = s.status === 'live' ? `🔴 ${s.minute ? s.minute + '\'' : ''} ` : '';
-  let html = `<span class="score-badge ${cls}">${label}${s.score}</span>`;
-  if (s.penalty) html += `<span class="score-badge" style="font-size:0.62rem;opacity:0.8">(פנ׳ ${s.penalty})</span>`;
+  const label = s.status === 'live' ? `🔴 ` : '';
+  let html = `<span class="score-badge ${cls}">${label}${rtlScore}</span>`;
+  if (s.penalty) {
+    const pparts = s.penalty.split('-');
+    const rtlPen = pparts.length === 2 ? `${pparts[1]}-${pparts[0]}` : s.penalty;
+    html += `<span class="score-badge" style="font-size:0.62rem;opacity:0.8">(פנ׳ ${rtlPen})</span>`;
+  }
   return html;
 }
 
