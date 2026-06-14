@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-14T20:01:13Z",
-  "count": 9,
+  "updated": "2026-06-14T22:37:20Z",
+  "count": 10,
   "matches": [
     {
       "home": "Mexico",
@@ -70,6 +70,14 @@
       "home": "Germany",
       "away": "Curaçao",
       "score": "7-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-14"
+    },
+    {
+      "home": "Netherlands",
+      "away": "Japan",
+      "score": "2-2",
       "status": "final",
       "minute": null,
       "date": "2026-06-14"
