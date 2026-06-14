@@ -433,6 +433,24 @@
   .spin { display: inline-block; animation: spin 0.8s linear infinite; }
   @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
+  /* ── PAST SECTION ── */
+  .past-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--gray);
+    transition: background 0.2s;
+  }
+  .past-toggle:hover { background: rgba(255,255,255,0.07); color: var(--white); }
+  .past-arrow { font-size: 0.7rem; }
+
   /* ── STANDINGS ── */
   .standings-card {
     background: var(--card-bg);
@@ -906,6 +924,10 @@ function renderTimeline() {
   const container = document.getElementById('timelineContent');
   container.innerHTML = '';
 
+  // תאריך היום בישראל
+  const nowIL = new Date(Date.now() + 3 * 3600 * 1000);
+  const todayKey = `${nowIL.getUTCFullYear()}-${String(nowIL.getUTCMonth()+1).padStart(2,'0')}-${String(nowIL.getUTCDate()).padStart(2,'0')}`;
+
   const byDate = {};
   MATCHES.filter(matchVisible).forEach(m => {
     const key = ilDateKey(m);
@@ -915,48 +937,39 @@ function renderTimeline() {
 
   const sortedDates = Object.keys(byDate).sort();
 
-  sortedDates.forEach((date, idx) => {
-    const ms = byDate[date].sort((a,b) => {
-      const ga = (a.gmtH + (a.nextDay ? 24 : 0)) * 60 + (a.gmtM || 0);
-      const gb = (b.gmtH + (b.nextDay ? 24 : 0)) * 60 + (b.gmtM || 0);
-      return ga - gb;
-    });
+  // קבץ ימים עברו
+  const pastDates   = sortedDates.filter(d => d < todayKey);
+  const todayDates  = sortedDates.filter(d => d === todayKey);
+  const futureDates = sortedDates.filter(d => d > todayKey);
 
-    // תאריך ישראלי לתצוגה — ה-key כבר מחושב נכון ע"י ilDateKey
-    const ilDayNum = parseInt(date.split('-')[2]);
-    const ilMonth  = parseInt(date.split('-')[1]);
-    const jsDate   = new Date(date + 'T12:00:00Z');
-    const dayLabel = `${DOW_HE[jsDate.getUTCDay()]} ${String(ilDayNum).padStart(2,'0')}/${String(ilMonth).padStart(2,'0')}`;
-
-    const block = document.createElement('div');
-    block.className = 'day-block';
-    block.innerHTML = `
-      <div class="day-header">
-        <div class="day-num">${ilDayNum}</div>
-        <div>
-          <div class="day-title">${dayLabel}</div>
-          <div class="day-subtitle">${ms.length} משחקים</div>
-        </div>
+  // אם יש ימים עברו — הוסף כותרת מקופלת
+  if (pastDates.length > 0) {
+    const pastWrap = document.createElement('div');
+    pastWrap.className = 'past-section';
+    pastWrap.innerHTML = `
+      <div class="past-toggle" onclick="togglePast(this)">
+        <span>📅 ${pastDates.length} ימים שעברו</span>
+        <span class="past-arrow">▼</span>
       </div>
-      <div class="timeline-matches">
-        ${ms.map(m => `
-          <div class="tl-match">
-            <div class="tl-match-top">
-              <span class="tl-group-badge" style="background:${GROUPS[m.group].color}">קבוצה ${m.group}</span>
-              <span class="tl-time">🕐 ${ilTime(m.gmtH, m.gmtM)}</span>
-            </div>
-            <div class="tl-teams">
-              ${m.home}
-              <span class="tl-vs">נגד</span>
-              ${m.away}
-              ${scoreHtml(m)}
-            </div>
-            <div class="tl-venue">${m.venue}, ${m.city}</div>
-          </div>
-        `).join('')}
+      <div class="past-content" style="display:none">
+        ${pastDates.map(date => buildDayBlock(date, byDate[date], 'past')).join('')}
       </div>
     `;
-    container.appendChild(block);
+    container.appendChild(pastWrap);
+  }
+
+  // היום
+  todayDates.forEach(date => {
+    const el = document.createElement('div');
+    el.innerHTML = buildDayBlock(date, byDate[date], 'today');
+    container.appendChild(el.firstElementChild);
+  });
+
+  // עתיד
+  futureDates.forEach(date => {
+    const el = document.createElement('div');
+    el.innerHTML = buildDayBlock(date, byDate[date], 'future');
+    container.appendChild(el.firstElementChild);
   });
 
   // KO in timeline
@@ -984,6 +997,73 @@ function renderTimeline() {
     `;
     container.appendChild(koBlock);
   }
+}
+
+function buildDayBlock(date, matches, type) {
+  const ms = matches.sort((a,b) => {
+    const ga = (a.gmtH + (a.nextDay ? 24 : 0)) * 60 + (a.gmtM || 0);
+    const gb = (b.gmtH + (b.nextDay ? 24 : 0)) * 60 + (b.gmtM || 0);
+    return ga - gb;
+  });
+
+  const ilDayNum = parseInt(date.split('-')[2]);
+  const ilMonth  = parseInt(date.split('-')[1]);
+  const jsDate   = new Date(date + 'T12:00:00Z');
+  const dayLabel = `${DOW_HE[jsDate.getUTCDay()]} ${String(ilDayNum).padStart(2,'0')}/${String(ilMonth).padStart(2,'0')}`;
+
+  const isToday  = type === 'today';
+  const isPast   = type === 'past';
+
+  const headerStyle = isToday
+    ? 'background:rgba(200,168,75,0.12);border-radius:10px;padding:10px 12px;margin-bottom:12px;border:1px solid rgba(200,168,75,0.3);'
+    : isPast
+    ? 'opacity:0.5;'
+    : '';
+
+  const numStyle = isToday
+    ? 'background:var(--gold);color:#0a1f14;'
+    : isPast
+    ? 'background:rgba(255,255,255,0.1);color:var(--gray);'
+    : '';
+
+  const todayBadge = isToday ? '<span style="font-size:0.65rem;background:var(--gold);color:#0a1f14;font-weight:700;padding:2px 8px;border-radius:10px;margin-right:8px">היום</span>' : '';
+
+  return `
+    <div class="day-block">
+      <div class="day-header" style="${headerStyle}">
+        <div class="day-num" style="${numStyle}">${ilDayNum}</div>
+        <div>
+          <div class="day-title">${todayBadge}${dayLabel}</div>
+          <div class="day-subtitle">${ms.length} משחקים</div>
+        </div>
+      </div>
+      <div class="timeline-matches" style="${isPast ? 'opacity:0.6' : ''}">
+        ${ms.map(m => `
+          <div class="tl-match">
+            <div class="tl-match-top">
+              <span class="tl-group-badge" style="background:${GROUPS[m.group].color}">קבוצה ${m.group}</span>
+              <span class="tl-time">🕐 ${ilTime(m.gmtH, m.gmtM)}</span>
+            </div>
+            <div class="tl-teams">
+              ${m.home}
+              <span class="tl-vs">נגד</span>
+              ${m.away}
+              ${scoreHtml(m)}
+            </div>
+            <div class="tl-venue">${m.venue}, ${m.city}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function togglePast(el) {
+  const content = el.nextElementSibling;
+  const arrow   = el.querySelector('.past-arrow');
+  const isOpen  = content.style.display !== 'none';
+  content.style.display = isOpen ? 'none' : 'block';
+  arrow.textContent = isOpen ? '▼' : '▲';
 }
 
 // ──────────────────────────────────────────────
