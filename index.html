@@ -1100,7 +1100,7 @@ function calcStandings() {
   for (const letter of Object.keys(GROUPS)) {
     tables[letter] = {};
     for (const teamHe of GROUPS[letter].teams) {
-      const nameStripped = teamHe.replace(/[\u{1F1E0}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|\uFE0F|[\u{1F3FB}-\u{1F3FF}]|[\u{1F004}-\u{1F0CF}]/gu,'').trim();
+      const nameStripped = stripEmoji(teamHe);
       tables[letter][nameStripped] = { name: teamHe, p:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 };
     }
   }
@@ -1111,8 +1111,8 @@ function calcStandings() {
     if (!s || s.status !== 'final') return;
 
     // שמות עברית
-    const homeStripped = m.home.replace(/[\u{1F1E0}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|\uFE0F|[\u{1F3FB}-\u{1F3FF}]|[\u{1F004}-\u{1F0CF}]/gu,'').trim();
-    const awayStripped = m.away.replace(/[\u{1F1E0}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|\uFE0F|[\u{1F3FB}-\u{1F3FF}]|[\u{1F004}-\u{1F0CF}]/gu,'').trim();
+    const homeStripped = stripEmoji(m.home);
+    const awayStripped = stripEmoji(m.away);
 
     const grp = tables[m.group];
     if (!grp || !grp[homeStripped] || !grp[awayStripped]) return;
@@ -1254,9 +1254,18 @@ const TEAM_NAME_MAP = {
   'פנמה':             'Panama',
 };
 
+function stripEmoji(s) {
+  return s
+    .replace(/[\u{1F3F4}\uDB40\uDC67\uDB40\uDC62][\u{1F000}-\u{DFFFF}]*/gu, '') // תגיות דגל מורכבות (סקוטלנד, וויילס, אנגליה)
+    .replace(/[\u{1F1E0}-\u{1F1FF}]{2}/gu, '')   // דגלי emoji רגילים
+    .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')       // emoji כלליים
+    .replace(/\uFE0F/g, '')                        // variation selector
+    .replace(/[\u{E0000}-\u{E007F}]/gu, '')        // תגיות Unicode
+    .trim();
+}
+
 function hebrewToEn(hebrewName) {
-  // strip flag emojis
-  const stripped = hebrewName.replace(/[\u{1F1E0}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|\uFE0F|[\u{1F3FB}-\u{1F3FF}]|[\u{1F004}-\u{1F0CF}]/gu, '').trim();
+  const stripped = stripEmoji(hebrewName);
   return TEAM_NAME_MAP[stripped] || stripped;
 }
 
