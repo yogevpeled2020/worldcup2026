@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-14T22:37:20Z",
-  "count": 10,
+  "updated": "2026-06-15T05:48:30Z",
+  "count": 12,
   "matches": [
     {
       "home": "Mexico",
@@ -81,6 +81,22 @@
       "status": "final",
       "minute": null,
       "date": "2026-06-14"
+    },
+    {
+      "home": "Ivory Coast",
+      "away": "Ecuador",
+      "score": "1-0",
+      "status": "live",
+      "minute": null,
+      "date": "2026-06-14"
+    },
+    {
+      "home": "Sweden",
+      "away": "Tunisia",
+      "score": "5-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-15"
     }
   ]
 }
