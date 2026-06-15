@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-15T13:21:11Z",
-  "count": 12,
+  "updated": "2026-06-15T17:58:38Z",
+  "count": 13,
   "matches": [
     {
       "home": "Mexico",
@@ -95,6 +95,14 @@
       "away": "Tunisia",
       "score": "5-1",
       "status": "final",
+      "minute": null,
+      "date": "2026-06-15"
+    },
+    {
+      "home": "Spain",
+      "away": "Cape Verde Islands",
+      "score": "0-0",
+      "status": "live",
       "minute": null,
       "date": "2026-06-15"
     }
