@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-17T03:43:16Z",
-  "count": 19,
+  "updated": "2026-06-17T05:57:26Z",
+  "count": 20,
   "matches": [
     {
       "home": "Mexico",
@@ -151,6 +151,14 @@
       "away": "Algeria",
       "score": "3-0",
       "status": "final",
+      "minute": null,
+      "date": "2026-06-17"
+    },
+    {
+      "home": "Austria",
+      "away": "Jordan",
+      "score": "3-1",
+      "status": "live",
       "minute": null,
       "date": "2026-06-17"
     }
