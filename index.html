@@ -505,6 +505,62 @@
   .st-gd.pos { color: #4caf7d; }
   .st-gd.neg { color: #e34040; }
 
+  /* ── BRACKET VIEW ── */
+  .bracket-round-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin: 24px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .bracket-round-title:first-child { margin-top: 0; }
+  .bracket-matches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+  }
+  .bracket-match {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.78rem;
+  }
+  .bracket-match-num {
+    font-size: 0.62rem;
+    color: var(--gray);
+    margin-bottom: 6px;
+  }
+  .bracket-team {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+  }
+  .bracket-team.winner { color: #4caf7d; font-weight: 700; }
+  .bracket-team.pending { color: var(--gray); font-style: italic; font-size: 0.72rem; }
+  .bracket-team.decided { color: var(--white); font-weight: 600; }
+  .bracket-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    margin: 2px 0;
+  }
+  .bracket-score {
+    font-weight: 700;
+    color: var(--gold-light);
+    direction: ltr;
+  }
+  .bracket-venue {
+    font-size: 0.6rem;
+    color: var(--gray);
+    margin-top: 6px;
+    text-align: center;
+  }
+  .bracket-vs-live {
+    color: var(--live);
+  }
+
   /* ── ISRAEL TIME NOTE ── */
   .il-note {
     text-align: center;
@@ -565,6 +621,7 @@
     <button class="view-btn active" id="vbtn-groups" onclick="setView('groups')">⊞ לפי קבוצות</button>
     <button class="view-btn" id="vbtn-timeline" onclick="setView('timeline')">≡ לפי תאריך</button>
     <button class="view-btn" id="vbtn-standings" onclick="setView('standings')">🏅 טבלאות</button>
+    <button class="view-btn" id="vbtn-bracket" onclick="setView('bracket')">🏆 עץ הטורניר</button>
   </div>
 
   <div class="search-wrap">
@@ -607,6 +664,12 @@
   <div id="standingsView" style="display:none">
     <div class="section-label">טבלאות בתים – מחושב מתוצאות בפועל</div>
     <div class="groups-grid" id="standingsGrid"></div>
+  </div>
+
+  <!-- ═══ BRACKET VIEW ═══ -->
+  <div id="bracketView" style="display:none">
+    <div class="section-label">עץ הטורניר – שלבי הנוקאאוט</div>
+    <div id="bracketContent"></div>
   </div>
 </main>
 
@@ -1087,9 +1150,11 @@ function setView(v) {
   document.getElementById('vbtn-groups').classList.toggle('active', v === 'groups');
   document.getElementById('vbtn-timeline').classList.toggle('active', v === 'timeline');
   document.getElementById('vbtn-standings').classList.toggle('active', v === 'standings');
+  document.getElementById('vbtn-bracket').classList.toggle('active', v === 'bracket');
   document.getElementById('groupsView').style.display    = v === 'groups'    ? 'block' : 'none';
   document.getElementById('timelineView').style.display  = v === 'timeline'  ? 'block' : 'none';
   document.getElementById('standingsView').style.display = v === 'standings' ? 'block' : 'none';
+  document.getElementById('bracketView').style.display   = v === 'bracket'   ? 'block' : 'none';
   renderCurrent();
 }
 
@@ -1193,6 +1258,264 @@ function renderCurrent() {
   if (currentView === 'groups') renderGroups();
   else if (currentView === 'timeline') renderTimeline();
   else if (currentView === 'standings') renderStandings();
+  else if (currentView === 'bracket') renderBracket();
+}
+
+// ──────────────────────────────────────────────
+// BRACKET — עץ הטורניר
+// ──────────────────────────────────────────────
+
+// מבנה Round of 32 הרשמי של FIFA (Match 73-88)
+// type: 'winner' = מקום 1 בבית, 'runnerup' = מקום 2, 'third' = השלישי הטוב מבין הבתים שצוינו
+const R32_FIXTURES = [
+  { num:73, a:{type:'runnerup', group:'A'}, b:{type:'runnerup', group:'B'}, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
+  { num:74, a:{type:'winner',   group:'E'}, b:{type:'third', groups:['A','B','C','D','F']}, venue:'Boston Stadium', city:'בוסטון' },
+  { num:75, a:{type:'winner',   group:'F'}, b:{type:'runnerup', group:'C'}, venue:'Estadio Monterrey', city:'גוואדלופה' },
+  { num:76, a:{type:'winner',   group:'C'}, b:{type:'runnerup', group:'F'}, venue:'Houston Stadium', city:'יוסטון' },
+  { num:77, a:{type:'winner',   group:'I'}, b:{type:'third', groups:['C','D','F','G','H']}, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי' },
+  { num:78, a:{type:'runnerup', group:'E'}, b:{type:'runnerup', group:'I'}, venue:'Dallas Stadium', city:'דאלאס' },
+  { num:79, a:{type:'winner',   group:'A'}, b:{type:'third', groups:['C','E','F','H','I']}, venue:'Mexico City Stadium', city:'מקסיקו סיטי' },
+  { num:80, a:{type:'winner',   group:'L'}, b:{type:'third', groups:['E','H','I','J','K']}, venue:'Atlanta Stadium', city:'אטלנטה' },
+  { num:81, a:{type:'winner',   group:'D'}, b:{type:'third', groups:['B','E','F','I','J']}, venue:'San Francisco Bay Area Stadium', city:'סן פרנסיסקו' },
+  { num:82, a:{type:'winner',   group:'G'}, b:{type:'third', groups:['A','E','H','I','J']}, venue:'Seattle Stadium', city:'סיאטל' },
+  { num:83, a:{type:'runnerup', group:'K'}, b:{type:'runnerup', group:'L'}, venue:'Toronto Stadium', city:'טורונטו' },
+  { num:84, a:{type:'winner',   group:'H'}, b:{type:'runnerup', group:'J'}, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
+  { num:85, a:{type:'winner',   group:'B'}, b:{type:'third', groups:['E','F','G','I','J']}, venue:'BC Place', city:'ונקובר' },
+  { num:86, a:{type:'winner',   group:'J'}, b:{type:'runnerup', group:'H'}, venue:'Miami Stadium', city:'מיאמי' },
+  { num:87, a:{type:'winner',   group:'K'}, b:{type:'third', groups:['D','E','I','J','L']}, venue:'Kansas City Stadium', city:'קנזס סיטי' },
+  { num:88, a:{type:'runnerup', group:'D'}, b:{type:'runnerup', group:'G'}, venue:'Dallas Stadium', city:'דאלאס' },
+];
+
+const R16_FIXTURES = [
+  { num:89, a:{type:'winnerOf',num:74}, b:{type:'winnerOf',num:77}, venue:'Philadelphia Stadium', city:'פילדלפיה' },
+  { num:90, a:{type:'winnerOf',num:73}, b:{type:'winnerOf',num:75}, venue:'Houston Stadium', city:'יוסטון' },
+  { num:91, a:{type:'winnerOf',num:76}, b:{type:'winnerOf',num:78}, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי' },
+  { num:92, a:{type:'winnerOf',num:79}, b:{type:'winnerOf',num:80}, venue:'Mexico City Stadium', city:'מקסיקו סיטי' },
+  { num:93, a:{type:'winnerOf',num:83}, b:{type:'winnerOf',num:84}, venue:'Dallas Stadium', city:'דאלאס' },
+  { num:94, a:{type:'winnerOf',num:81}, b:{type:'winnerOf',num:82}, venue:'Seattle Stadium', city:'סיאטל' },
+  { num:95, a:{type:'winnerOf',num:86}, b:{type:'winnerOf',num:88}, venue:'Atlanta Stadium', city:'אטלנטה' },
+  { num:96, a:{type:'winnerOf',num:85}, b:{type:'winnerOf',num:87}, venue:'BC Place', city:'ונקובר' },
+];
+
+const QF_FIXTURES = [
+  { num:97,  a:{type:'winnerOf',num:89}, b:{type:'winnerOf',num:90}, venue:'Boston Stadium', city:'בוסטון' },
+  { num:98,  a:{type:'winnerOf',num:93}, b:{type:'winnerOf',num:94}, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
+  { num:99,  a:{type:'winnerOf',num:91}, b:{type:'winnerOf',num:92}, venue:'Miami Stadium', city:'מיאמי' },
+  { num:100, a:{type:'winnerOf',num:95}, b:{type:'winnerOf',num:96}, venue:'Kansas City Stadium', city:'קנזס סיטי' },
+];
+
+const SF_FIXTURES = [
+  { num:101, a:{type:'winnerOf',num:97}, b:{type:'winnerOf',num:98}, venue:'Dallas Stadium', city:'דאלאס' },
+  { num:102, a:{type:'winnerOf',num:99}, b:{type:'winnerOf',num:100}, venue:'Atlanta Stadium', city:'אטלנטה' },
+];
+
+const FINAL_FIXTURES = [
+  { num:103, a:{type:'loserOf',num:101}, b:{type:'loserOf',num:102}, venue:'Miami Stadium', city:'מיאמי', label:'🥉 גמר קטן' },
+  { num:104, a:{type:'winnerOf',num:101}, b:{type:'winnerOf',num:102}, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי', label:'🏆 הגמר' },
+];
+
+function getGroupStandingsSorted(tables, letter) {
+  return Object.values(tables[letter]).sort((a,b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    const gdB = b.gf - b.ga, gdA = a.gf - a.ga;
+    if (gdB !== gdA) return gdB - gdA;
+    return b.gf - a.gf;
+  });
+}
+
+function groupIsComplete(letter) {
+  // בית נחשב גמור אם כל 6 המשחקים שלו הסתיימו
+  const groupMatches = MATCHES.filter(m => m.group === letter);
+  return groupMatches.every(m => {
+    const s = findScore(m);
+    return s && s.status === 'final';
+  });
+}
+
+function calcBracketData() {
+  const tables = calcStandings();
+  const sorted = {};
+  for (const letter of Object.keys(GROUPS)) {
+    sorted[letter] = getGroupStandingsSorted(tables, letter);
+  }
+
+  // דירוג שלישיים — רק אם כל 12 הבתים גמרו (כדי שהדירוג יהיה הוגן וסופי)
+  const allGroupsComplete = Object.keys(GROUPS).every(groupIsComplete);
+
+  let bestThirds = [];
+  if (allGroupsComplete) {
+    const thirds = Object.keys(GROUPS).map(letter => ({
+      letter,
+      team: sorted[letter][2]
+    }));
+    thirds.sort((a,b) => {
+      if (b.team.pts !== a.team.pts) return b.team.pts - a.team.pts;
+      const gdB = b.team.gf - b.team.ga, gdA = a.team.gf - a.team.ga;
+      if (gdB !== gdA) return gdB - gdA;
+      return b.team.gf - a.team.gf;
+    });
+    bestThirds = thirds.slice(0, 8);
+  }
+
+  return { sorted, allGroupsComplete, bestThirds };
+}
+
+function resolveSlot(slot, bracketData, resultsMap) {
+  const { sorted, allGroupsComplete, bestThirds } = bracketData;
+
+  if (slot.type === 'winner') {
+    if (!groupIsComplete(slot.group)) return { label: `מקום 1 בית ${slot.group}`, decided:false };
+    const t = sorted[slot.group][0];
+    return { label: t.name, decided:true, key: stripEmoji(t.name) };
+  }
+  if (slot.type === 'runnerup') {
+    if (!groupIsComplete(slot.group)) return { label: `מקום 2 בית ${slot.group}`, decided:false };
+    const t = sorted[slot.group][1];
+    return { label: t.name, decided:true, key: stripEmoji(t.name) };
+  }
+  if (slot.type === 'third') {
+    if (!allGroupsComplete) return { label: `שלישי טוב ${slot.groups.join('/')}`, decided:false };
+    const found = bestThirds.find(bt => slot.groups.includes(bt.letter));
+    if (!found) return { label: `(לא עלה משלישיים)`, decided:false, eliminated:true };
+    return { label: found.team.name, decided:true, key: stripEmoji(found.team.name) };
+  }
+  if (slot.type === 'winnerOf' || slot.type === 'loserOf') {
+    const prevResult = resultsMap[slot.num];
+    if (!prevResult || !prevResult.decided) {
+      return { label: `מנצח/ת משחק ${slot.num}`, decided:false };
+    }
+    const wantWinner = slot.type === 'winnerOf';
+    const pick = wantWinner ? prevResult.winnerLabel : prevResult.loserLabel;
+    const pickKey = wantWinner ? prevResult.winnerKey : prevResult.loserKey;
+    if (!pick) return { label: `מנצח/ת משחק ${slot.num}`, decided:false };
+    return { label: pick, decided:true, key: pickKey };
+  }
+  return { label: '?', decided:false };
+}
+
+// חפש תוצאה לפי שמות אנגליים (keys) במקום אובייקט MATCHES
+function findScoreByKeys(keyA, keyB) {
+  if (!keyA || !keyB) return null;
+  const enA = TEAM_NAME_MAP[keyA] || keyA;
+  const enB = TEAM_NAME_MAP[keyB] || keyB;
+  const directKey = `${enA}|${enB}`;
+  if (scoresCache[directKey]) return { s: scoresCache[directKey], reversed:false };
+  const revKey = `${enB}|${enA}`;
+  if (scoresCache[revKey]) return { s: scoresCache[revKey], reversed:true };
+  // נסה נורמליזציה
+  const normA = normalizeApiName(enA);
+  const normB = normalizeApiName(enB);
+  const n1 = scoresCache[`__norm__${normA}|${normB}`];
+  if (n1) return { s: n1, reversed:false };
+  const n2 = scoresCache[`__norm__${normB}|${normA}`];
+  if (n2) return { s: n2, reversed:true };
+  return null;
+}
+
+function buildKoMatchResult(fixture, bracketData, resultsMap) {
+  const a = resolveSlot(fixture.a, bracketData, resultsMap);
+  const b = resolveSlot(fixture.b, bracketData, resultsMap);
+
+  let result = {
+    num: fixture.num, a, b, decided:false,
+    winnerLabel:null, winnerKey:null, loserLabel:null, loserKey:null,
+    score:null, status:null
+  };
+
+  if (a.decided && b.decided && a.key && b.key) {
+    const found = findScoreByKeys(a.key, b.key);
+    if (found && (found.s.status === 'final')) {
+      const parts = found.s.score.split('-').map(Number);
+      let scoreA, scoreB;
+      if (!found.reversed) { scoreA = parts[0]; scoreB = parts[1]; }
+      else { scoreA = parts[1]; scoreB = parts[0]; }
+
+      result.score = `${scoreA}-${scoreB}`;
+      result.status = 'final';
+
+      if (scoreA > scoreB) {
+        result.decided = true;
+        result.winnerLabel = a.label; result.winnerKey = a.key;
+        result.loserLabel  = b.label; result.loserKey  = b.key;
+      } else if (scoreB > scoreA) {
+        result.decided = true;
+        result.winnerLabel = b.label; result.winnerKey = b.key;
+        result.loserLabel  = a.label; result.loserKey  = a.key;
+      }
+      // אם פנדלים יש להניח penalty קובע, נציג בנפרד
+      if (found.s.penalty) {
+        const pparts = found.s.penalty.split('-').map(Number);
+        let pA, pB;
+        if (!found.reversed) { pA = pparts[0]; pB = pparts[1]; } else { pA = pparts[1]; pB = pparts[0]; }
+        result.penalty = `${pA}-${pB}`;
+        if (pA > pB) { result.decided = true; result.winnerLabel = a.label; result.winnerKey = a.key; result.loserLabel = b.label; result.loserKey = b.key; }
+        else if (pB > pA) { result.decided = true; result.winnerLabel = b.label; result.winnerKey = b.key; result.loserLabel = a.label; result.loserKey = a.key; }
+      }
+    } else if (found && found.s.status === 'live') {
+      const parts = found.s.score.split('-').map(Number);
+      let scoreA, scoreB;
+      if (!found.reversed) { scoreA = parts[0]; scoreB = parts[1]; }
+      else { scoreA = parts[1]; scoreB = parts[0]; }
+      result.score = `${scoreA}-${scoreB}`;
+      result.status = 'live';
+    }
+  }
+
+  return result;
+}
+
+function renderBracket() {
+  const container = document.getElementById('bracketContent');
+  container.innerHTML = '';
+  const bracketData = calcBracketData();
+  const resultsMap = {};
+
+  function renderRound(title, fixtures, fixtureVenueLookup) {
+    fixtures.forEach(f => {
+      resultsMap[f.num] = buildKoMatchResult(f, bracketData, resultsMap);
+    });
+
+    const html = `
+      <div class="bracket-round-title">${title}</div>
+      <div class="bracket-matches">
+        ${fixtures.map(f => {
+          const r = resultsMap[f.num];
+          const aClass = r.decided && r.winnerKey === r.a.key ? 'winner' : r.a.decided ? 'decided' : 'pending';
+          const bClass = r.decided && r.winnerKey === r.b.key ? 'winner' : r.b.decided ? 'decided' : 'pending';
+          const scoreDisplay = r.score ? `<span class="bracket-score">${r.status==='live'?'🔴 ':''}${r.score}</span>` : '';
+          return `
+            <div class="bracket-match">
+              <div class="bracket-match-num">משחק ${f.num}${f.label ? ' · '+f.label : ''}</div>
+              <div class="bracket-team ${aClass}">
+                <span>${r.a.label}</span>
+                ${aClass !== 'pending' ? scoreDisplay : ''}
+              </div>
+              <div class="bracket-divider"></div>
+              <div class="bracket-team ${bClass}">
+                <span>${r.b.label}</span>
+              </div>
+              <div class="bracket-venue">${f.venue}, ${f.city}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+  }
+
+  if (!bracketData.allGroupsComplete) {
+    container.insertAdjacentHTML('beforeend', `
+      <div class="il-note" style="margin-bottom:20px">
+        ⚠️ <strong>שלב הבתים עדיין לא הסתיים</strong> — חלק מהמשבצות יוצגו כ"מקום 1/2/3" עד שהתוצאות הסופיות יתקבלו (27/06)
+      </div>
+    `);
+  }
+
+  renderRound('שמינית גמר (Round of 32)', R32_FIXTURES);
+  renderRound('שישית גמר (Round of 16)', R16_FIXTURES);
+  renderRound('רבע גמר (Quarterfinals)', QF_FIXTURES);
+  renderRound('חצי גמר (Semifinals)', SF_FIXTURES);
+  renderRound('גמר ומקום 3', FINAL_FIXTURES);
 }
 
 // ──────────────────────────────────────────────
