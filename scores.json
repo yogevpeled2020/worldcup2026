@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-19T21:05:46Z",
-  "count": 29,
+  "updated": "2026-06-19T22:16:06Z",
+  "count": 30,
   "matches": [
     {
       "home": "Mexico",
@@ -231,6 +231,14 @@
       "away": "Australia",
       "score": "2-0",
       "status": "final",
+      "minute": null,
+      "date": "2026-06-19"
+    },
+    {
+      "home": "Scotland",
+      "away": "Morocco",
+      "score": "0-1",
+      "status": "live",
       "minute": null,
       "date": "2026-06-19"
     }
