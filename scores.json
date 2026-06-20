@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-19T22:16:06Z",
-  "count": 30,
+  "updated": "2026-06-20T05:02:17Z",
+  "count": 32,
   "matches": [
     {
       "home": "Mexico",
@@ -238,9 +238,25 @@
       "home": "Scotland",
       "away": "Morocco",
       "score": "0-1",
-      "status": "live",
+      "status": "final",
       "minute": null,
       "date": "2026-06-19"
+    },
+    {
+      "home": "Brazil",
+      "away": "Haiti",
+      "score": "3-0",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-20"
+    },
+    {
+      "home": "Turkey",
+      "away": "Paraguay",
+      "score": "0-1",
+      "status": "live",
+      "minute": null,
+      "date": "2026-06-20"
     }
   ]
 }
