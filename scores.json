@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-20T19:12:57Z",
-  "count": 32,
+  "updated": "2026-06-20T22:37:52Z",
+  "count": 34,
   "matches": [
     {
       "home": "Mexico",
@@ -14,6 +14,14 @@
       "home": "South Korea",
       "away": "Czechia",
       "score": "2-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-12"
+    },
+    {
+      "home": "Canada",
+      "away": "Bosnia-Herzegovina",
+      "score": "1-1",
       "status": "final",
       "minute": null,
       "date": "2026-06-12"
@@ -254,6 +262,14 @@
       "home": "Netherlands",
       "away": "Sweden",
       "score": "5-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-20"
+    },
+    {
+      "home": "Germany",
+      "away": "Ivory Coast",
+      "score": "2-1",
       "status": "final",
       "minute": null,
       "date": "2026-06-20"
