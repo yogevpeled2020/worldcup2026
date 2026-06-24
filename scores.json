@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-24T10:25:14Z",
-  "count": 48,
+  "updated": "2026-06-24T22:42:21Z",
+  "count": 52,
   "matches": [
     {
       "home": "Mexico",
@@ -382,6 +382,38 @@
       "home": "Colombia",
       "away": "Congo DR",
       "score": "1-0",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-24"
+    },
+    {
+      "home": "Switzerland",
+      "away": "Canada",
+      "score": "2-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-24"
+    },
+    {
+      "home": "Bosnia-Herzegovina",
+      "away": "Qatar",
+      "score": "3-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-24"
+    },
+    {
+      "home": "Morocco",
+      "away": "Haiti",
+      "score": "0-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-24"
+    },
+    {
+      "home": "Scotland",
+      "away": "Brazil",
+      "score": "0-2",
       "status": "final",
       "minute": null,
       "date": "2026-06-24"
