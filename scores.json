@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-23T22:41:55Z",
-  "count": 46,
+  "updated": "2026-06-24T04:56:38Z",
+  "count": 48,
   "matches": [
     {
       "home": "Mexico",
@@ -369,6 +369,22 @@
       "status": "final",
       "minute": null,
       "date": "2026-06-23"
+    },
+    {
+      "home": "Panama",
+      "away": "Croatia",
+      "score": "0-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-23"
+    },
+    {
+      "home": "Colombia",
+      "away": "Congo DR",
+      "score": "1-0",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-24"
     }
   ]
 }
