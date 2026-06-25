@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-24T22:42:21Z",
-  "count": 52,
+  "updated": "2026-06-25T04:55:54Z",
+  "count": 54,
   "matches": [
     {
       "home": "Mexico",
@@ -405,7 +405,7 @@
     {
       "home": "Morocco",
       "away": "Haiti",
-      "score": "0-1",
+      "score": "4-2",
       "status": "final",
       "minute": null,
       "date": "2026-06-24"
@@ -413,10 +413,26 @@
     {
       "home": "Scotland",
       "away": "Brazil",
-      "score": "0-2",
+      "score": "0-3",
       "status": "final",
       "minute": null,
       "date": "2026-06-24"
+    },
+    {
+      "home": "Czechia",
+      "away": "Mexico",
+      "score": "0-3",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-25"
+    },
+    {
+      "home": "South Africa",
+      "away": "South Korea",
+      "score": "1-0",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-25"
     }
   ]
 }
