@@ -530,7 +530,15 @@
   .bracket-match-num {
     font-size: 0.62rem;
     color: var(--gray);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+  }
+  .bracket-datetime {
+    font-size: 0.68rem;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
   }
   .bracket-team {
     display: flex;
@@ -647,10 +655,11 @@
     <div class="section-label">שלב הבתים – 11 יוני עד 27 יוני</div>
     <div class="groups-grid" id="groupsGrid"></div>
 
-    <!-- KNOCKOUT -->
+    <!-- KNOCKOUT LINK -->
     <div class="ko-section" id="koSection">
       <h3>⚔️ שלבי הנוקאאוט</h3>
-      <div class="ko-rounds" id="koRounds"></div>
+      <p style="color:var(--gray);font-size:0.85rem;margin-bottom:12px">לתצוגה מלאה עם שמות נבחרות מתעדכנים אוטומטית, עבור לכפתור 🏆 עץ הטורניר למעלה</p>
+      <button class="filter-btn" style="background:var(--gold);color:#0a1f14;border-color:var(--gold);font-weight:700" onclick="setView('bracket')">🏆 צפה בעץ הטורניר המלא</button>
     </div>
   </div>
 
@@ -957,29 +966,14 @@ function renderGroups() {
     grid.appendChild(card);
   }
 
-  // KO
+  // KO link visibility
   renderKO();
 }
 
 function renderKO() {
-  if (currentFilter !== 'all' || currentSearch) {
-    document.getElementById('koSection').style.display = 'none';
-    return;
-  }
-  document.getElementById('koSection').style.display = '';
-  const container = document.getElementById('koRounds');
-  container.innerHTML = KNOCKOUT.map(r => `
-    <div class="ko-round-block">
-      <div class="ko-round-title">${r.round}</div>
-      ${r.matches.map(m => `
-        <div class="ko-match">
-          <div class="ko-date">${m.date} · ${ilTime(m.gmtH, m.gmtM || 0)}</div>
-          <div class="ko-teams">TBD vs TBD</div>
-          <div class="ko-venue">${m.venue}, ${m.city}</div>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
+  const koSection = document.getElementById('koSection');
+  if (!koSection) return;
+  koSection.style.display = (currentFilter !== 'all' || currentSearch) ? 'none' : '';
 }
 
 // ── Timeline View ──
@@ -1035,28 +1029,15 @@ function renderTimeline() {
     container.appendChild(el.firstElementChild);
   });
 
-  // KO in timeline
+  // KO link in timeline
   if (currentFilter === 'all' && !currentSearch) {
     const koBlock = document.createElement('div');
     koBlock.innerHTML = `
       <div class="section-label" style="margin-top:32px">שלבי הנוקאאוט</div>
-      ${KNOCKOUT.map(r => `
-        <div class="day-block">
-          <div style="padding:10px 0 8px;border-bottom:1px solid var(--card-border);margin-bottom:12px;font-size:1rem;font-weight:700;color:var(--gold)">${r.round}</div>
-          <div class="timeline-matches">
-            ${r.matches.map(m => `
-              <div class="tl-match">
-                <div class="tl-match-top">
-                  <span style="font-size:0.65rem;color:var(--gray)">${m.date}</span>
-                  <span class="tl-time">🕐 ${ilTime(m.gmtH, m.gmtM || 0)}</span>
-                </div>
-                <div class="tl-teams" style="font-size:0.8rem;color:var(--gray)">TBD vs TBD</div>
-                <div class="tl-venue">${m.venue}, ${m.city}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `).join('')}
+      <div class="ko-section">
+        <p style="color:var(--gray);font-size:0.85rem;margin-bottom:12px">לתאריכי שלבי הנוקאאוט ושמות הנבחרות המתעדכנים אוטומטית, עבור לכפתור 🏆 עץ הטורניר למעלה</p>
+        <button class="filter-btn" style="background:var(--gold);color:#0a1f14;border-color:var(--gold);font-weight:700" onclick="setView('bracket')">🏆 צפה בעץ הטורניר המלא</button>
+      </div>
     `;
     container.appendChild(koBlock);
   }
@@ -1268,50 +1249,50 @@ function renderCurrent() {
 // מבנה Round of 32 הרשמי של FIFA (Match 73-88)
 // type: 'winner' = מקום 1 בבית, 'runnerup' = מקום 2, 'third' = השלישי הטוב מבין הבתים שצוינו
 const R32_FIXTURES = [
-  { num:73, a:{type:'runnerup', group:'A'}, b:{type:'runnerup', group:'B'}, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
-  { num:74, a:{type:'winner',   group:'E'}, b:{type:'third', groups:['A','B','C','D','F']}, venue:'Boston Stadium', city:'בוסטון' },
-  { num:75, a:{type:'winner',   group:'F'}, b:{type:'runnerup', group:'C'}, venue:'Estadio Monterrey', city:'גוואדלופה' },
-  { num:76, a:{type:'winner',   group:'C'}, b:{type:'runnerup', group:'F'}, venue:'Houston Stadium', city:'יוסטון' },
-  { num:77, a:{type:'winner',   group:'I'}, b:{type:'third', groups:['C','D','F','G','H']}, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי' },
-  { num:78, a:{type:'runnerup', group:'E'}, b:{type:'runnerup', group:'I'}, venue:'Dallas Stadium', city:'דאלאס' },
-  { num:79, a:{type:'winner',   group:'A'}, b:{type:'third', groups:['C','E','F','H','I']}, venue:'Mexico City Stadium', city:'מקסיקו סיטי' },
-  { num:80, a:{type:'winner',   group:'L'}, b:{type:'third', groups:['E','H','I','J','K']}, venue:'Atlanta Stadium', city:'אטלנטה' },
-  { num:81, a:{type:'winner',   group:'D'}, b:{type:'third', groups:['B','E','F','I','J']}, venue:'San Francisco Bay Area Stadium', city:'סן פרנסיסקו' },
-  { num:82, a:{type:'winner',   group:'G'}, b:{type:'third', groups:['A','E','H','I','J']}, venue:'Seattle Stadium', city:'סיאטל' },
-  { num:83, a:{type:'runnerup', group:'K'}, b:{type:'runnerup', group:'L'}, venue:'Toronto Stadium', city:'טורונטו' },
-  { num:84, a:{type:'winner',   group:'H'}, b:{type:'runnerup', group:'J'}, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
-  { num:85, a:{type:'winner',   group:'B'}, b:{type:'third', groups:['E','F','G','I','J']}, venue:'BC Place', city:'ונקובר' },
-  { num:86, a:{type:'winner',   group:'J'}, b:{type:'runnerup', group:'H'}, venue:'Miami Stadium', city:'מיאמי' },
-  { num:87, a:{type:'winner',   group:'K'}, b:{type:'third', groups:['D','E','I','J','L']}, venue:'Kansas City Stadium', city:'קנזס סיטי' },
-  { num:88, a:{type:'runnerup', group:'D'}, b:{type:'runnerup', group:'G'}, venue:'Dallas Stadium', city:'דאלאס' },
+  { num:73, date:'2026-06-28', day:'יום א׳ 28/06', gmtH:0,  gmtM:0, nextDay:true,  a:{type:'runnerup', group:'A'}, b:{type:'runnerup', group:'B'}, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
+  { num:74, date:'2026-06-28', day:'יום א׳ 28/06', gmtH:23, gmtM:30, nextDay:true, a:{type:'winner',   group:'E'}, b:{type:'third', groups:['A','B','C','D','F']}, venue:'Boston Stadium', city:'בוסטון' },
+  { num:75, date:'2026-06-29', day:'שני 29/06', gmtH:23, gmtM:0, nextDay:true,    a:{type:'winner',   group:'F'}, b:{type:'runnerup', group:'C'}, venue:'Estadio Monterrey', city:'גוואדלופה' },
+  { num:76, date:'2026-06-29', day:'שני 29/06', gmtH:17, gmtM:0,                  a:{type:'winner',   group:'C'}, b:{type:'runnerup', group:'F'}, venue:'Houston Stadium', city:'יוסטון' },
+  { num:77, date:'2026-06-29', day:'שני 29/06', gmtH:21, gmtM:0,                  a:{type:'winner',   group:'I'}, b:{type:'third', groups:['C','D','F','G','H']}, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי' },
+  { num:78, date:'2026-06-30', day:'שלישי 30/06', gmtH:17, gmtM:0,                a:{type:'runnerup', group:'E'}, b:{type:'runnerup', group:'I'}, venue:'Dallas Stadium', city:'דאלאס' },
+  { num:79, date:'2026-06-30', day:'שלישי 30/06', gmtH:23, gmtM:0, nextDay:true,  a:{type:'winner',   group:'A'}, b:{type:'third', groups:['C','E','F','H','I']}, venue:'Mexico City Stadium', city:'מקסיקו סיטי' },
+  { num:80, date:'2026-07-01', day:'רביעי 01/07', gmtH:16, gmtM:0,                a:{type:'winner',   group:'L'}, b:{type:'third', groups:['E','H','I','J','K']}, venue:'Atlanta Stadium', city:'אטלנטה' },
+  { num:81, date:'2026-07-01', day:'רביעי 01/07', gmtH:20, gmtM:0,                a:{type:'winner',   group:'D'}, b:{type:'third', groups:['B','E','F','I','J']}, venue:'San Francisco Bay Area Stadium', city:'סן פרנסיסקו' },
+  { num:82, date:'2026-07-01', day:'רביעי 01/07', gmtH:20, gmtM:0,                a:{type:'winner',   group:'G'}, b:{type:'third', groups:['A','E','H','I','J']}, venue:'Seattle Stadium', city:'סיאטל' },
+  { num:83, date:'2026-07-02', day:'יום ה׳ 02/07', gmtH:19, gmtM:0,               a:{type:'runnerup', group:'K'}, b:{type:'runnerup', group:'L'}, venue:'Toronto Stadium', city:'טורונטו' },
+  { num:84, date:'2026-07-02', day:'יום ה׳ 02/07', gmtH:23, gmtM:0,               a:{type:'winner',   group:'H'}, b:{type:'runnerup', group:'J'}, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
+  { num:85, date:'2026-07-03', day:'יום ו׳ 03/07', gmtH:3,  gmtM:0, nextDay:true, a:{type:'winner',   group:'B'}, b:{type:'third', groups:['E','F','G','I','J']}, venue:'BC Place', city:'ונקובר' },
+  { num:86, date:'2026-07-03', day:'יום ו׳ 03/07', gmtH:18, gmtM:0,               a:{type:'winner',   group:'J'}, b:{type:'runnerup', group:'H'}, venue:'Miami Stadium', city:'מיאמי' },
+  { num:87, date:'2026-07-03', day:'יום ו׳ 03/07', gmtH:22, gmtM:0,               a:{type:'winner',   group:'K'}, b:{type:'third', groups:['D','E','I','J','L']}, venue:'Kansas City Stadium', city:'קנזס סיטי' },
+  { num:88, date:'2026-07-03', day:'יום ו׳ 03/07', gmtH:14, gmtM:0,               a:{type:'runnerup', group:'D'}, b:{type:'runnerup', group:'G'}, venue:'Dallas Stadium', city:'דאלאס' },
 ];
 
 const R16_FIXTURES = [
-  { num:89, a:{type:'winnerOf',num:74}, b:{type:'winnerOf',num:77}, venue:'Philadelphia Stadium', city:'פילדלפיה' },
-  { num:90, a:{type:'winnerOf',num:73}, b:{type:'winnerOf',num:75}, venue:'Houston Stadium', city:'יוסטון' },
-  { num:91, a:{type:'winnerOf',num:76}, b:{type:'winnerOf',num:78}, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי' },
-  { num:92, a:{type:'winnerOf',num:79}, b:{type:'winnerOf',num:80}, venue:'Mexico City Stadium', city:'מקסיקו סיטי' },
-  { num:93, a:{type:'winnerOf',num:83}, b:{type:'winnerOf',num:84}, venue:'Dallas Stadium', city:'דאלאס' },
-  { num:94, a:{type:'winnerOf',num:81}, b:{type:'winnerOf',num:82}, venue:'Seattle Stadium', city:'סיאטל' },
-  { num:95, a:{type:'winnerOf',num:86}, b:{type:'winnerOf',num:88}, venue:'Atlanta Stadium', city:'אטלנטה' },
-  { num:96, a:{type:'winnerOf',num:85}, b:{type:'winnerOf',num:87}, venue:'BC Place', city:'ונקובר' },
+  { num:89, date:'2026-07-04', day:'שבת 04/07', gmtH:21, gmtM:0,               a:{type:'winnerOf',num:74}, b:{type:'winnerOf',num:77}, venue:'Philadelphia Stadium', city:'פילדלפיה' },
+  { num:90, date:'2026-07-04', day:'שבת 04/07', gmtH:17, gmtM:0,               a:{type:'winnerOf',num:73}, b:{type:'winnerOf',num:75}, venue:'Houston Stadium', city:'יוסטון' },
+  { num:91, date:'2026-07-05', day:'יום א׳ 05/07', gmtH:23, gmtM:0,           a:{type:'winnerOf',num:76}, b:{type:'winnerOf',num:78}, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי' },
+  { num:92, date:'2026-07-06', day:'שני 06/07', gmtH:0, gmtM:0, nextDay:true, a:{type:'winnerOf',num:79}, b:{type:'winnerOf',num:80}, venue:'Mexico City Stadium', city:'מקסיקו סיטי' },
+  { num:93, date:'2026-07-06', day:'שני 06/07', gmtH:19, gmtM:0,              a:{type:'winnerOf',num:83}, b:{type:'winnerOf',num:84}, venue:'Dallas Stadium', city:'דאלאס' },
+  { num:94, date:'2026-07-06', day:'שני 06/07', gmtH:0, gmtM:0, nextDay:true, a:{type:'winnerOf',num:81}, b:{type:'winnerOf',num:82}, venue:'Seattle Stadium', city:'סיאטל' },
+  { num:95, date:'2026-07-07', day:'שלישי 07/07', gmtH:16, gmtM:0,           a:{type:'winnerOf',num:86}, b:{type:'winnerOf',num:88}, venue:'Atlanta Stadium', city:'אטלנטה' },
+  { num:96, date:'2026-07-07', day:'שלישי 07/07', gmtH:20, gmtM:0,           a:{type:'winnerOf',num:85}, b:{type:'winnerOf',num:87}, venue:'BC Place', city:'ונקובר' },
 ];
 
 const QF_FIXTURES = [
-  { num:97,  a:{type:'winnerOf',num:89}, b:{type:'winnerOf',num:90}, venue:'Boston Stadium', city:'בוסטון' },
-  { num:98,  a:{type:'winnerOf',num:93}, b:{type:'winnerOf',num:94}, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
-  { num:99,  a:{type:'winnerOf',num:91}, b:{type:'winnerOf',num:92}, venue:'Miami Stadium', city:'מיאמי' },
-  { num:100, a:{type:'winnerOf',num:95}, b:{type:'winnerOf',num:96}, venue:'Kansas City Stadium', city:'קנזס סיטי' },
+  { num:97,  date:'2026-07-09', day:'יום ה׳ 09/07', gmtH:17, gmtM:0, a:{type:'winnerOf',num:89}, b:{type:'winnerOf',num:90}, venue:'Boston Stadium', city:'בוסטון' },
+  { num:98,  date:'2026-07-10', day:'יום ו׳ 10/07', gmtH:16, gmtM:0, a:{type:'winnerOf',num:93}, b:{type:'winnerOf',num:94}, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
+  { num:99,  date:'2026-07-11', day:'שבת 11/07', gmtH:17, gmtM:0,    a:{type:'winnerOf',num:91}, b:{type:'winnerOf',num:92}, venue:'Miami Stadium', city:'מיאמי' },
+  { num:100, date:'2026-07-11', day:'שבת 11/07', gmtH:22, gmtM:0,    a:{type:'winnerOf',num:95}, b:{type:'winnerOf',num:96}, venue:'Kansas City Stadium', city:'קנזס סיטי' },
 ];
 
 const SF_FIXTURES = [
-  { num:101, a:{type:'winnerOf',num:97}, b:{type:'winnerOf',num:98}, venue:'Dallas Stadium', city:'דאלאס' },
-  { num:102, a:{type:'winnerOf',num:99}, b:{type:'winnerOf',num:100}, venue:'Atlanta Stadium', city:'אטלנטה' },
+  { num:101, date:'2026-07-14', day:'שלישי 14/07', gmtH:16, gmtM:0, a:{type:'winnerOf',num:97}, b:{type:'winnerOf',num:98}, venue:'Dallas Stadium', city:'דאלאס' },
+  { num:102, date:'2026-07-15', day:'רביעי 15/07', gmtH:16, gmtM:0, a:{type:'winnerOf',num:99}, b:{type:'winnerOf',num:100}, venue:'Atlanta Stadium', city:'אטלנטה' },
 ];
 
 const FINAL_FIXTURES = [
-  { num:103, a:{type:'loserOf',num:101}, b:{type:'loserOf',num:102}, venue:'Miami Stadium', city:'מיאמי', label:'🥉 גמר קטן' },
-  { num:104, a:{type:'winnerOf',num:101}, b:{type:'winnerOf',num:102}, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי', label:'🏆 הגמר' },
+  { num:103, date:'2026-07-18', day:'שבת 18/07', gmtH:18, gmtM:0, a:{type:'loserOf',num:101}, b:{type:'loserOf',num:102}, venue:'Miami Stadium', city:'מיאמי', label:'🥉 גמר קטן' },
+  { num:104, date:'2026-07-19', day:'יום א׳ 19/07', gmtH:16, gmtM:0, a:{type:'winnerOf',num:101}, b:{type:'winnerOf',num:102}, venue:'New York New Jersey Stadium', city:'ניו ג\'רזי', label:'🏆 הגמר' },
 ];
 
 function getGroupStandingsSorted(tables, letter) {
@@ -1486,6 +1467,7 @@ function renderBracket() {
           return `
             <div class="bracket-match">
               <div class="bracket-match-num">משחק ${f.num}${f.label ? ' · '+f.label : ''}</div>
+              <div class="bracket-datetime">📅 ${f.day} · 🕐 ${ilTime(f.gmtH, f.gmtM)}</div>
               <div class="bracket-team ${aClass}">
                 <span>${r.a.label}</span>
                 ${aClass !== 'pending' ? scoreDisplay : ''}
