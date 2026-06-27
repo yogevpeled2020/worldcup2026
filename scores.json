@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-27T09:31:17Z",
-  "count": 66,
+  "updated": "2026-06-27T22:32:52Z",
+  "count": 68,
   "matches": [
     {
       "home": "Mexico",
@@ -527,6 +527,22 @@
       "away": "Iran",
       "score": "1-1",
       "status": "final",
+      "minute": null,
+      "date": "2026-06-27"
+    },
+    {
+      "home": "Panama",
+      "away": "England",
+      "score": "0-2",
+      "status": "live",
+      "minute": null,
+      "date": "2026-06-27"
+    },
+    {
+      "home": "Croatia",
+      "away": "Ghana",
+      "score": "1-0",
+      "status": "live",
       "minute": null,
       "date": "2026-06-27"
     }
