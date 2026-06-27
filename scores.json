@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-26T22:39:03Z",
-  "count": 62,
+  "updated": "2026-06-27T04:42:41Z",
+  "count": 66,
   "matches": [
     {
       "home": "Mexico",
@@ -497,6 +497,38 @@
       "status": "final",
       "minute": null,
       "date": "2026-06-26"
+    },
+    {
+      "home": "Uruguay",
+      "away": "Spain",
+      "score": "0-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-27"
+    },
+    {
+      "home": "Cape Verde Islands",
+      "away": "Saudi Arabia",
+      "score": "0-0",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-27"
+    },
+    {
+      "home": "New Zealand",
+      "away": "Belgium",
+      "score": "0-3",
+      "status": "live",
+      "minute": null,
+      "date": "2026-06-27"
+    },
+    {
+      "home": "Egypt",
+      "away": "Iran",
+      "score": "1-1",
+      "status": "live",
+      "minute": null,
+      "date": "2026-06-27"
     }
   ]
 }
