@@ -575,6 +575,7 @@
     overflow-y: hidden;
     padding: 10px 0 24px;
     -webkit-overflow-scrolling: touch;
+    direction: ltr;
   }
   .tree-scroll-hint {
     text-align: center;
@@ -591,20 +592,39 @@
     border: 1px solid var(--card-border);
     border-radius: 8px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    padding: 0 8px;
-    font-size: 0.72rem;
+    justify-content: center;
+    padding: 3px 4px;
+    font-size: 0.62rem;
     font-weight: 600;
     color: var(--white);
-    gap: 6px;
+    gap: 1px;
     white-space: nowrap;
     overflow: hidden;
   }
   .tree-box.winner-box { border-color: #4caf7d; color: #4caf7d; background: rgba(76,175,125,0.08); }
-  .tree-box.pending-box { color: var(--gray); font-style: italic; font-weight: 400; font-size: 0.66rem; }
-  .tree-flag { font-size: 0.95rem; flex-shrink: 0; }
-  .tree-team-name { overflow: hidden; text-overflow: ellipsis; flex: 1; }
-  .tree-score { color: var(--gold-light); font-weight: 800; direction: ltr; flex-shrink: 0; }
+  .tree-box.pending-box { color: var(--gray); font-style: italic; font-weight: 400; font-size: 0.56rem; }
+  .tree-box.tree-box-final {
+    background: linear-gradient(160deg, rgba(200,168,75,0.25), rgba(200,168,75,0.1));
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 12px rgba(200,168,75,0.3);
+  }
+  .tree-box.tree-box-final.winner-box {
+    background: linear-gradient(160deg, rgba(76,175,125,0.3), rgba(200,168,75,0.15));
+    border-color: #4caf7d;
+  }
+  .tree-flag { font-size: 1.1rem; flex-shrink: 0; line-height: 1; }
+  .tree-team-name { overflow: hidden; text-overflow: ellipsis; max-width: 100%; line-height: 1.15; }
+  .tree-score {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    color: var(--gold-light);
+    font-weight: 800;
+    font-size: 0.68rem;
+    direction: ltr;
+  }
   .tree-meta-label {
     position: absolute;
     font-size: 0.62rem;
@@ -1620,8 +1640,8 @@ function renderTree() {
   });
 
   // ── קבועי גודל ──
-  const BOX_W     = 150;
-  const BOX_H     = 36;
+  const BOX_W     = 92;
+  const BOX_H     = 44;
   const TEAM_GAP  = 4;
   const ROUND_GAP = 56;
   const META_H    = 22;   // תאריך/שעה מעל קופסה
@@ -1656,7 +1676,7 @@ function renderTree() {
   const totalHeight = slot7Y + ROW_H / 2 + 140; // + מקום לגמר קטן בסוף
 
   // ── מצייר זוג קופסאות (תוצאה a/b) שמרכזן ב-centerY נתון ──
-  function drawPair(x, centerY, f, r) {
+  function drawPair(x, centerY, f, r, extraClass) {
     const topY = centerY - PAIR_H;
     const aWin = r.decided && r.winnerKey === r.a.key;
     const bWin = r.decided && r.winnerKey === r.b.key;
@@ -1665,15 +1685,16 @@ function renderTree() {
     const aText = r.a.decided ? extractTeamText(r.a.label) : r.a.label;
     const bText = r.b.decided ? extractTeamText(r.b.label) : r.b.label;
     const sp = r.score ? r.score.split('-') : [null, null];
+    const extra = extraClass ? ' ' + extraClass : '';
 
     boxes.push({
       x, y: topY, w: BOX_W, h: BOX_H,
-      cls: 'tree-box' + (aWin ? ' winner-box' : '') + (!r.a.decided ? ' pending-box' : ''),
+      cls: 'tree-box' + extra + (aWin ? ' winner-box' : '') + (!r.a.decided ? ' pending-box' : ''),
       html: `<span class="tree-flag">${aFlag}</span><span class="tree-team-name">${aText}</span>${sp[0]!==null ? `<span class="tree-score">${sp[0]}</span>` : ''}`
     });
     boxes.push({
       x, y: topY + BOX_H + TEAM_GAP, w: BOX_W, h: BOX_H,
-      cls: 'tree-box' + (bWin ? ' winner-box' : '') + (!r.b.decided ? ' pending-box' : ''),
+      cls: 'tree-box' + extra + (bWin ? ' winner-box' : '') + (!r.b.decided ? ' pending-box' : ''),
       html: `<span class="tree-flag">${bFlag}</span><span class="tree-team-name">${bText}</span>${sp[1]!==null ? `<span class="tree-score">${sp[1]}</span>` : ''}`
     });
     labels.push({
@@ -1782,7 +1803,7 @@ function renderTree() {
   // ════════════════════════════════════════
   const finalF = FINAL_FIXTURES[1];
   const finalCenter = (sfLeftCenter + sfRightCenter) / 2;
-  drawPair(colX.final, finalCenter, finalF, resultsMap[finalF.num]);
+  drawPair(colX.final, finalCenter, finalF, resultsMap[finalF.num], 'tree-box-final');
 
   vLine(colX.sfL + BOX_W, sfLeftCenter, colX.sfL + BOX_W + ROUND_GAP/2, sfLeftCenter);
   vLine(colX.sfL + BOX_W + ROUND_GAP/2, sfLeftCenter, colX.sfL + BOX_W + ROUND_GAP/2, finalCenter);
@@ -1791,12 +1812,6 @@ function renderTree() {
   vLine(colX.sfR, sfRightCenter, colX.sfR - ROUND_GAP/2, sfRightCenter);
   vLine(colX.sfR - ROUND_GAP/2, sfRightCenter, colX.sfR - ROUND_GAP/2, finalCenter);
   vLine(colX.final + BOX_W, finalCenter, colX.sfR - ROUND_GAP/2, finalCenter);
-
-  // גביע — שורה מובטחת קבועה, ממוקם תמיד מעל ה-TOP_PAD בלי תלות בעץ
-  boxes.push({
-    x: colX.final, y: 4, w: BOX_W, h: 44,
-    cls: 'tree-trophy-box', html: `<div style="font-size:2.1rem;text-align:center;width:100%;line-height:44px">🏆</div>`
-  });
 
   // גמר קטן — שורה מובטחת קבועה מתחת לכל העץ
   const thirdF  = FINAL_FIXTURES[0];
@@ -1842,6 +1857,19 @@ function renderTree() {
   });
 
   container.innerHTML = html;
+
+  // גלול לאמצע (עמודת הגמר) כברירת מחדל - double rAF מבטיח paint מלא
+  const wrap = container.closest('.tree-scroll-wrap');
+  if (wrap) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (wrap.clientWidth > 0) {
+          const centerScroll = colX.final - (wrap.clientWidth / 2) + (BOX_W / 2);
+          wrap.scrollLeft = Math.max(0, centerScroll);
+        }
+      });
+    });
+  }
 }
 
 
