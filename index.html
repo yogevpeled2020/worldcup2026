@@ -569,6 +569,74 @@
     color: var(--live);
   }
 
+  /* ── VISUAL TREE BRACKET ── */
+  .tree-scroll-wrap {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px 0 24px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tree-scroll-hint {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--gray);
+    margin-bottom: 8px;
+  }
+  .tree-svg-container {
+    position: relative;
+  }
+  .tree-box {
+    position: absolute;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--white);
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .tree-box.winner-box { border-color: #4caf7d; color: #4caf7d; background: rgba(76,175,125,0.08); }
+  .tree-box.pending-box { color: var(--gray); font-style: italic; font-weight: 400; font-size: 0.66rem; }
+  .tree-flag { font-size: 0.95rem; flex-shrink: 0; }
+  .tree-team-name { overflow: hidden; text-overflow: ellipsis; flex: 1; }
+  .tree-score { color: var(--gold-light); font-weight: 800; direction: ltr; flex-shrink: 0; }
+  .tree-meta-label {
+    position: absolute;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--gold);
+    text-align: center;
+    white-space: nowrap;
+  }
+  .tree-datetime-label {
+    position: absolute;
+    font-size: 0.58rem;
+    color: var(--gray);
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.3;
+  }
+  .tree-round-header {
+    position: absolute;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--gold);
+    text-align: center;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tree-trophy {
+    position: absolute;
+    font-size: 2.5rem;
+    text-align: center;
+  }
+
   /* ── ISRAEL TIME NOTE ── */
   .il-note {
     text-align: center;
@@ -677,8 +745,22 @@
 
   <!-- ═══ BRACKET VIEW ═══ -->
   <div id="bracketView" style="display:none">
-    <div class="section-label">עץ הטורניר – שלבי הנוקאאוט</div>
-    <div id="bracketContent"></div>
+    <div class="section-label" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <span>עץ הטורניר – שלבי הנוקאאוט</span>
+      <span style="display:flex;gap:6px">
+        <button class="filter-btn active" id="bracket-mode-tree" onclick="setBracketMode('tree')" style="text-transform:none;letter-spacing:0">🌳 עץ ויזואלי</button>
+        <button class="filter-btn" id="bracket-mode-cards" onclick="setBracketMode('cards')" style="text-transform:none;letter-spacing:0">📋 כרטיסים</button>
+      </span>
+    </div>
+    <div id="treeView">
+      <div class="tree-scroll-hint">👈 גלול ימינה-שמאלה לראות את כל העץ 👉</div>
+      <div class="tree-scroll-wrap">
+        <div class="tree-svg-container" id="treeContainer"></div>
+      </div>
+    </div>
+    <div id="cardsView" style="display:none">
+      <div id="bracketContent"></div>
+    </div>
   </div>
 </main>
 
@@ -1239,7 +1321,10 @@ function renderCurrent() {
   if (currentView === 'groups') renderGroups();
   else if (currentView === 'timeline') renderTimeline();
   else if (currentView === 'standings') renderStandings();
-  else if (currentView === 'bracket') renderBracket();
+  else if (currentView === 'bracket') {
+    if (currentBracketMode === 'tree') renderTree();
+    else renderBracket();
+  }
 }
 
 // ──────────────────────────────────────────────
@@ -1499,6 +1584,267 @@ function renderBracket() {
   renderRound('חצי גמר (Semifinals)', SF_FIXTURES);
   renderRound('גמר ומקום 3', FINAL_FIXTURES);
 }
+
+// ──────────────────────────────────────────────
+// VISUAL TREE BRACKET — עץ ויזואלי עם SVG וקווי חיבור
+// ──────────────────────────────────────────────
+let currentBracketMode = 'tree';
+
+function setBracketMode(mode) {
+  currentBracketMode = mode;
+  document.getElementById('bracket-mode-tree').classList.toggle('active', mode === 'tree');
+  document.getElementById('bracket-mode-cards').classList.toggle('active', mode === 'cards');
+  document.getElementById('treeView').style.display  = mode === 'tree'  ? 'block' : 'none';
+  document.getElementById('cardsView').style.display = mode === 'cards' ? 'block' : 'none';
+  if (mode === 'tree') renderTree();
+  else renderBracket();
+}
+
+function extractFlag(label) {
+  const m = label.match(/[\u{1F1E0}-\u{1F1FF}]{2}|[\u{1F3F4}][\u{E0000}-\u{E007F}]+/u);
+  return m ? m[0] : '🏳️';
+}
+function extractTeamText(label) {
+  return stripEmoji(label) || label;
+}
+
+function renderTree() {
+  const container = document.getElementById('treeContainer');
+  container.innerHTML = '';
+  const bracketData = calcBracketData();
+  const resultsMap = {};
+
+  const allRounds = [R32_FIXTURES, R16_FIXTURES, QF_FIXTURES, SF_FIXTURES, FINAL_FIXTURES];
+  allRounds.forEach(round => {
+    round.forEach(f => { resultsMap[f.num] = buildKoMatchResult(f, bracketData, resultsMap); });
+  });
+
+  // ── קבועי גודל ──
+  const BOX_W     = 150;
+  const BOX_H     = 36;
+  const TEAM_GAP  = 4;
+  const ROUND_GAP = 56;
+  const META_H    = 22;   // תאריך/שעה מעל קופסה
+  const TOP_PAD   = 56;   // מקום לכותרת שלב מעל הכל
+  const ROW_H     = BOX_H * 2 + TEAM_GAP + META_H + 18; // גובה "סלוט" אחיד לכל משחק R32 שמאל/ימין
+  const PAIR_H    = BOX_H + TEAM_GAP / 2;               // חצי-גובה זוג קופסאות (לחישוב מרכז)
+
+  const boxes   = [];
+  const labels  = [];
+  const lines   = [];
+  const headers = [];
+
+  // ── טור X לכל שלב (8 טורים: 4 שמאל + 4 ימין, עם הגמר באמצע) ──
+  const colX = {};
+  colX.r32L  = 0;
+  colX.r16L  = colX.r32L  + BOX_W + ROUND_GAP;
+  colX.qfL   = colX.r16L  + BOX_W + ROUND_GAP;
+  colX.sfL   = colX.qfL   + BOX_W + ROUND_GAP;
+  colX.final = colX.sfL   + BOX_W + ROUND_GAP;
+  colX.sfR   = colX.final + BOX_W + ROUND_GAP;
+  colX.qfR   = colX.sfR   + BOX_W + ROUND_GAP;
+  colX.r16R  = colX.qfR   + BOX_W + ROUND_GAP;
+  colX.r32R  = colX.r16R  + BOX_W + ROUND_GAP;
+  const totalWidth = colX.r32R + BOX_W + 20;
+
+  // ── slot center Y לכל אחד מ-8 ה"בסיסים" של R32 (אינדקס 0-7) ──
+  function slotCenterY(i) {
+    return TOP_PAD + i * ROW_H + ROW_H / 2;
+  }
+  const slot0Y = slotCenterY(0);
+  const slot7Y = slotCenterY(7);
+  const totalHeight = slot7Y + ROW_H / 2 + 140; // + מקום לגמר קטן בסוף
+
+  // ── מצייר זוג קופסאות (תוצאה a/b) שמרכזן ב-centerY נתון ──
+  function drawPair(x, centerY, f, r) {
+    const topY = centerY - PAIR_H;
+    const aWin = r.decided && r.winnerKey === r.a.key;
+    const bWin = r.decided && r.winnerKey === r.b.key;
+    const aFlag = r.a.decided ? extractFlag(r.a.label) : '';
+    const bFlag = r.b.decided ? extractFlag(r.b.label) : '';
+    const aText = r.a.decided ? extractTeamText(r.a.label) : r.a.label;
+    const bText = r.b.decided ? extractTeamText(r.b.label) : r.b.label;
+    const sp = r.score ? r.score.split('-') : [null, null];
+
+    boxes.push({
+      x, y: topY, w: BOX_W, h: BOX_H,
+      cls: 'tree-box' + (aWin ? ' winner-box' : '') + (!r.a.decided ? ' pending-box' : ''),
+      html: `<span class="tree-flag">${aFlag}</span><span class="tree-team-name">${aText}</span>${sp[0]!==null ? `<span class="tree-score">${sp[0]}</span>` : ''}`
+    });
+    boxes.push({
+      x, y: topY + BOX_H + TEAM_GAP, w: BOX_W, h: BOX_H,
+      cls: 'tree-box' + (bWin ? ' winner-box' : '') + (!r.b.decided ? ' pending-box' : ''),
+      html: `<span class="tree-flag">${bFlag}</span><span class="tree-team-name">${bText}</span>${sp[1]!==null ? `<span class="tree-score">${sp[1]}</span>` : ''}`
+    });
+    labels.push({
+      x, y: topY - META_H - 2, w: BOX_W,
+      text: `${f.day} · ${ilTime(f.gmtH, f.gmtM)}`
+    });
+
+    return { top: topY, bottom: topY + BOX_H * 2 + TEAM_GAP, center: centerY };
+  }
+
+  function vLine(x1, y1, x2, y2) { lines.push({ x1, y1, x2, y2 }); }
+
+  // מחבר בין שני "ילדים" (centerY1, centerY2) בעמודה prevX לקופסה אחת בעמודה nextX עם מרכז parentCenterY
+  // direction: 'right' = ילדים בצד שמאל מהורה (התקדמות שמאל->ימין), 'left' = ילדים בצד ימין מהורה
+  function connectChildren(prevX, childCenters, nextX, parentCenter, direction) {
+    const midX = direction === 'right' ? prevX + ROUND_GAP / 2 : prevX - ROUND_GAP / 2;
+    childCenters.forEach(cy => {
+      if (direction === 'right') vLine(prevX, cy, midX, cy);
+      else vLine(prevX, cy, midX, cy);
+    });
+    vLine(midX, childCenters[0], midX, childCenters[1]);
+    if (direction === 'right') vLine(midX, parentCenter, nextX, parentCenter);
+    else vLine(nextX, parentCenter, midX, parentCenter);
+  }
+
+  // ════════════════════════════════════════
+  // R32 שמאל (8 משחקים, slot 0-7 ישירות)
+  // ════════════════════════════════════════
+  const leftR32  = R32_FIXTURES.slice(0, 8);
+  const rightR32 = R32_FIXTURES.slice(8, 16);
+  const r32LeftCenters = [];
+  leftR32.forEach((f, i) => {
+    const cy = slotCenterY(i);
+    drawPair(colX.r32L, cy, f, resultsMap[f.num]);
+    r32LeftCenters[i] = cy;
+  });
+
+  const r32RightCenters = [];
+  rightR32.forEach((f, i) => {
+    const cy = slotCenterY(i);
+    drawPair(colX.r32R, cy, f, resultsMap[f.num]);
+    r32RightCenters[i] = cy;
+  });
+
+  // ════════════════════════════════════════
+  // R16 שמאל (4) — parent center = ממוצע 2 ילדים עוקבים
+  // ════════════════════════════════════════
+  const r16LeftFixtures = R16_FIXTURES.slice(0, 4);
+  const r16LeftCenters = [];
+  r16LeftFixtures.forEach((f, i) => {
+    const c1 = r32LeftCenters[i*2], c2 = r32LeftCenters[i*2+1];
+    const cy = (c1 + c2) / 2;
+    drawPair(colX.r16L, cy, f, resultsMap[f.num]);
+    r16LeftCenters[i] = cy;
+    connectChildren(colX.r32L + BOX_W, [c1, c2], colX.r16L, cy, 'right');
+  });
+
+  const r16RightFixtures = R16_FIXTURES.slice(4, 8);
+  const r16RightCenters = [];
+  r16RightFixtures.forEach((f, i) => {
+    const c1 = r32RightCenters[i*2], c2 = r32RightCenters[i*2+1];
+    const cy = (c1 + c2) / 2;
+    drawPair(colX.r16R, cy, f, resultsMap[f.num]);
+    r16RightCenters[i] = cy;
+    connectChildren(colX.r32R, [c1, c2], colX.r16R + BOX_W, cy, 'left');
+  });
+
+  // ════════════════════════════════════════
+  // QF שמאל (2)
+  // ════════════════════════════════════════
+  const qfLeftFixtures = QF_FIXTURES.slice(0, 2);
+  const qfLeftCenters = [];
+  qfLeftFixtures.forEach((f, i) => {
+    const c1 = r16LeftCenters[i*2], c2 = r16LeftCenters[i*2+1];
+    const cy = (c1 + c2) / 2;
+    drawPair(colX.qfL, cy, f, resultsMap[f.num]);
+    qfLeftCenters[i] = cy;
+    connectChildren(colX.r16L + BOX_W, [c1, c2], colX.qfL, cy, 'right');
+  });
+
+  const qfRightFixtures = QF_FIXTURES.slice(2, 4);
+  const qfRightCenters = [];
+  qfRightFixtures.forEach((f, i) => {
+    const c1 = r16RightCenters[i*2], c2 = r16RightCenters[i*2+1];
+    const cy = (c1 + c2) / 2;
+    drawPair(colX.qfR, cy, f, resultsMap[f.num]);
+    qfRightCenters[i] = cy;
+    connectChildren(colX.r16R, [c1, c2], colX.qfR + BOX_W, cy, 'left');
+  });
+
+  // ════════════════════════════════════════
+  // SF שמאל/ימין (1 כל צד)
+  // ════════════════════════════════════════
+  const sfLeftF = SF_FIXTURES[0];
+  const sfLeftCenter = (qfLeftCenters[0] + qfLeftCenters[1]) / 2;
+  drawPair(colX.sfL, sfLeftCenter, sfLeftF, resultsMap[sfLeftF.num]);
+  connectChildren(colX.qfL + BOX_W, qfLeftCenters, colX.sfL, sfLeftCenter, 'right');
+
+  const sfRightF = SF_FIXTURES[1];
+  const sfRightCenter = (qfRightCenters[0] + qfRightCenters[1]) / 2;
+  drawPair(colX.sfR, sfRightCenter, sfRightF, resultsMap[sfRightF.num]);
+  connectChildren(colX.qfR, qfRightCenters, colX.sfR + BOX_W, sfRightCenter, 'left');
+
+  // ════════════════════════════════════════
+  // הגמר במרכז — centerY = ממוצע שני חצאי הגמר
+  // ════════════════════════════════════════
+  const finalF = FINAL_FIXTURES[1];
+  const finalCenter = (sfLeftCenter + sfRightCenter) / 2;
+  drawPair(colX.final, finalCenter, finalF, resultsMap[finalF.num]);
+
+  vLine(colX.sfL + BOX_W, sfLeftCenter, colX.sfL + BOX_W + ROUND_GAP/2, sfLeftCenter);
+  vLine(colX.sfL + BOX_W + ROUND_GAP/2, sfLeftCenter, colX.sfL + BOX_W + ROUND_GAP/2, finalCenter);
+  vLine(colX.sfL + BOX_W + ROUND_GAP/2, finalCenter, colX.final, finalCenter);
+
+  vLine(colX.sfR, sfRightCenter, colX.sfR - ROUND_GAP/2, sfRightCenter);
+  vLine(colX.sfR - ROUND_GAP/2, sfRightCenter, colX.sfR - ROUND_GAP/2, finalCenter);
+  vLine(colX.final + BOX_W, finalCenter, colX.sfR - ROUND_GAP/2, finalCenter);
+
+  // גביע — שורה מובטחת קבועה, ממוקם תמיד מעל ה-TOP_PAD בלי תלות בעץ
+  boxes.push({
+    x: colX.final, y: 4, w: BOX_W, h: 44,
+    cls: 'tree-trophy-box', html: `<div style="font-size:2.1rem;text-align:center;width:100%;line-height:44px">🏆</div>`
+  });
+
+  // גמר קטן — שורה מובטחת קבועה מתחת לכל העץ
+  const thirdF  = FINAL_FIXTURES[0];
+  const thirdY  = Math.max(slot7Y + ROW_H, finalCenter + ROW_H);
+  drawPair(colX.final, thirdY, thirdF, resultsMap[thirdF.num]);
+
+  // ── כותרות שלבים (קבועות, מעל TOP_PAD) ──
+  headers.push({ x: colX.r32L,  w: BOX_W, text: '1/16 גמר' });
+  headers.push({ x: colX.r16L,  w: BOX_W, text: '1/8 גמר'  });
+  headers.push({ x: colX.qfL,   w: BOX_W, text: 'רבע גמר'  });
+  headers.push({ x: colX.sfL,   w: BOX_W, text: 'חצי גמר'  });
+  headers.push({ x: colX.final, w: BOX_W, text: '🏆 הגמר'  });
+  headers.push({ x: colX.sfR,   w: BOX_W, text: 'חצי גמר'  });
+  headers.push({ x: colX.qfR,   w: BOX_W, text: 'רבע גמר'  });
+  headers.push({ x: colX.r16R,  w: BOX_W, text: '1/8 גמר'  });
+  headers.push({ x: colX.r32R,  w: BOX_W, text: '1/16 גמר' });
+
+  // ── חשב גובה כולל בפועל ──
+  const finalHeight = Math.max(totalHeight, thirdY + ROW_H);
+
+  // ── רנדר ──
+  container.style.width  = totalWidth + 'px';
+  container.style.height = finalHeight + 'px';
+  container.style.direction = 'ltr';
+
+  let html = '';
+  html += `<svg width="${totalWidth}" height="${finalHeight}" style="position:absolute;top:0;left:0;pointer-events:none">`;
+  lines.forEach(l => {
+    html += `<line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="rgba(200,168,75,0.35)" stroke-width="2" />`;
+  });
+  html += `</svg>`;
+
+  headers.forEach(h => {
+    html += `<div class="tree-round-header" style="left:${h.x}px;width:${h.w}px;top:0;direction:rtl">${h.text}</div>`;
+  });
+
+  labels.forEach(l => {
+    html += `<div class="tree-datetime-label" style="left:${l.x}px;width:${l.w}px;top:${l.y}px;direction:rtl">${l.text}</div>`;
+  });
+
+  boxes.forEach(b => {
+    html += `<div class="${b.cls}" style="left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;direction:rtl">${b.html}</div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+
 
 // ──────────────────────────────────────────────
 // SCORES — נטענים מ-scores.json שמעודכן פעמיים ביום ע"י GitHub Action
