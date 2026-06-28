@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-28T10:06:00Z",
-  "count": 72,
+  "updated": "2026-06-28T22:31:39Z",
+  "count": 73,
   "matches": [
     {
       "home": "Mexico",
@@ -574,6 +574,14 @@
       "home": "Algeria",
       "away": "Austria",
       "score": "3-3",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-28"
+    },
+    {
+      "home": "South Africa",
+      "away": "Canada",
+      "score": "0-1",
       "status": "final",
       "minute": null,
       "date": "2026-06-28"
