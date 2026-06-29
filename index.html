@@ -629,7 +629,6 @@
     <button class="view-btn active" id="vbtn-groups" onclick="setView('groups')">⊞ לפי קבוצות</button>
     <button class="view-btn" id="vbtn-timeline" onclick="setView('timeline')">≡ לפי תאריך</button>
     <button class="view-btn" id="vbtn-standings" onclick="setView('standings')">🏅 טבלאות</button>
-    <button class="view-btn" id="vbtn-bracket" onclick="setView('bracket')">🏆 עץ הטורניר</button>
   </div>
 
   <div class="search-wrap">
@@ -658,8 +657,8 @@
     <!-- KNOCKOUT LINK -->
     <div class="ko-section" id="koSection">
       <h3>⚔️ שלבי הנוקאאוט</h3>
-      <p style="color:var(--gray);font-size:0.85rem;margin-bottom:12px">לתצוגה מלאה עם שמות נבחרות מתעדכנים אוטומטית, עבור לכפתור 🏆 עץ הטורניר למעלה</p>
-      <button class="filter-btn" style="background:var(--gold);color:#0a1f14;border-color:var(--gold);font-weight:700" onclick="setView('bracket')">🏆 צפה בעץ הטורניר המלא</button>
+      <p style="color:var(--gray);font-size:0.85rem;margin-bottom:12px">לתצוגה מלאה עם שמות נבחרות מתעדכנים אוטומטית, עבור לכפתור ≡ לפי תאריך למעלה</p>
+      <button class="filter-btn" style="background:var(--gold);color:#0a1f14;border-color:var(--gold);font-weight:700" onclick="setView('timeline')">≡ צפה בלוח התאריכים המלא</button>
     </div>
   </div>
 
@@ -673,12 +672,6 @@
   <div id="standingsView" style="display:none">
     <div class="section-label">טבלאות בתים – מחושב מתוצאות בפועל</div>
     <div class="groups-grid" id="standingsGrid"></div>
-  </div>
-
-  <!-- ═══ BRACKET VIEW ═══ -->
-  <div id="bracketView" style="display:none">
-    <div class="section-label">שלבי הנוקאאוט – לפי תאריך</div>
-    <div id="bracketContent"></div>
   </div>
 </main>
 
@@ -1029,18 +1022,84 @@ function renderTimeline() {
     container.appendChild(el.firstElementChild);
   });
 
-  // KO link in timeline
+  // שלבי הנוקאאוט - מוצגים בפועל, מקובצים לפי תאריך, עם שמות מתעדכנים אוטומטית
   if (currentFilter === 'all' && !currentSearch) {
-    const koBlock = document.createElement('div');
-    koBlock.innerHTML = `
-      <div class="section-label" style="margin-top:32px">שלבי הנוקאאוט</div>
-      <div class="ko-section">
-        <p style="color:var(--gray);font-size:0.85rem;margin-bottom:12px">לתאריכי שלבי הנוקאאוט ושמות הנבחרות המתעדכנים אוטומטית, עבור לכפתור 🏆 עץ הטורניר למעלה</p>
-        <button class="filter-btn" style="background:var(--gold);color:#0a1f14;border-color:var(--gold);font-weight:700" onclick="setView('bracket')">🏆 צפה בעץ הטורניר המלא</button>
+    renderKnockoutByDate(container);
+  }
+}
+
+function renderKnockoutByDate(container) {
+  const bracketData = calcBracketData();
+  const resultsMap = {};
+  const allFixtures = [...R32_FIXTURES, ...R16_FIXTURES, ...QF_FIXTURES, ...SF_FIXTURES, ...FINAL_FIXTURES];
+  allFixtures.forEach(f => {
+    resultsMap[f.num] = buildKoMatchResult(f, bracketData, resultsMap);
+  });
+
+  container.insertAdjacentHTML('beforeend', `<div class="section-label" style="margin-top:32px">שלבי הנוקאאוט</div>`);
+
+  if (!bracketData.allGroupsComplete) {
+    container.insertAdjacentHTML('beforeend', `
+      <div class="il-note" style="margin-bottom:16px">
+        ⚠️ <strong>חלק מהמשבצות עדיין תלויות בדירוג השלישיים</strong> ויוצגו כ"שלישי טוב" עד לתוצאה סופית
+      </div>
+    `);
+  }
+
+  // קבץ לפי day string (כל fixture כבר מחושב עם תאריך IL נכון)
+  const byDay = {};
+  allFixtures.forEach(f => {
+    if (!byDay[f.day]) byDay[f.day] = [];
+    byDay[f.day].push(f);
+  });
+
+  function dateSortValue(f) {
+    const [y,m,d] = f.date.split('-').map(Number);
+    return new Date(y, m-1, d + (f.nextDay ? 1 : 0)).getTime();
+  }
+  const dayGroups = Object.entries(byDay).map(([day, fixtures]) => ({
+    day,
+    sortVal: dateSortValue(fixtures[0]),
+    fixtures: fixtures.sort((a,b) => (a.gmtH*60+a.gmtM) - (b.gmtH*60+b.gmtM))
+  })).sort((a,b) => a.sortVal - b.sortVal);
+
+  dayGroups.forEach(group => {
+    const html = `
+      <div class="day-block">
+        <div class="day-header">
+          <div class="day-num">${group.day.match(/(\d{2})\//)?.[1] || ''}</div>
+          <div>
+            <div class="day-title">${group.day}</div>
+            <div class="day-subtitle">${group.fixtures.length} משחקים</div>
+          </div>
+        </div>
+        <div class="timeline-matches">
+          ${group.fixtures.map(f => {
+            const r = resultsMap[f.num];
+            const aWin = r.decided && r.winnerKey === r.a.key;
+            const bWin = r.decided && r.winnerKey === r.b.key;
+            const scoreDisplay = r.score ? `<span class="score-badge ${r.status==='live'?'score-live':'score-final'}">${r.status==='live'?'🔴 ':''}${r.score}</span>` : '';
+            return `
+              <div class="tl-match">
+                <div class="tl-match-top">
+                  <span style="font-size:0.65rem;color:var(--gray)">משחק ${f.num}${f.label ? ' · '+f.label : ''}</span>
+                  <span class="tl-time">🕐 ${ilTime(f.gmtH, f.gmtM)}</span>
+                </div>
+                <div class="tl-teams">
+                  <span style="${aWin ? 'color:#4caf7d;font-weight:800' : ''}">${r.a.label}</span>
+                  <span class="tl-vs">נגד</span>
+                  <span style="${bWin ? 'color:#4caf7d;font-weight:800' : ''}">${r.b.label}</span>
+                  ${scoreDisplay}
+                </div>
+                <div class="tl-venue">${f.venue}, ${f.city}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
       </div>
     `;
-    container.appendChild(koBlock);
-  }
+    container.insertAdjacentHTML('beforeend', html);
+  });
 }
 
 function buildDayBlock(date, matches, type) {
@@ -1131,11 +1190,9 @@ function setView(v) {
   document.getElementById('vbtn-groups').classList.toggle('active', v === 'groups');
   document.getElementById('vbtn-timeline').classList.toggle('active', v === 'timeline');
   document.getElementById('vbtn-standings').classList.toggle('active', v === 'standings');
-  document.getElementById('vbtn-bracket').classList.toggle('active', v === 'bracket');
   document.getElementById('groupsView').style.display    = v === 'groups'    ? 'block' : 'none';
   document.getElementById('timelineView').style.display  = v === 'timeline'  ? 'block' : 'none';
   document.getElementById('standingsView').style.display = v === 'standings' ? 'block' : 'none';
-  document.getElementById('bracketView').style.display   = v === 'bracket'   ? 'block' : 'none';
   renderCurrent();
 }
 
@@ -1239,7 +1296,6 @@ function renderCurrent() {
   if (currentView === 'groups') renderGroups();
   else if (currentView === 'timeline') renderTimeline();
   else if (currentView === 'standings') renderStandings();
-  else if (currentView === 'bracket') renderBracket();
 }
 
 // ──────────────────────────────────────────────
@@ -1451,76 +1507,6 @@ function buildKoMatchResult(fixture, bracketData, resultsMap) {
   }
 
   return result;
-}
-
-function renderBracket() {
-  const container = document.getElementById('bracketContent');
-  container.innerHTML = '';
-  const bracketData = calcBracketData();
-  const resultsMap = {};
-
-  const allFixtures = [...R32_FIXTURES, ...R16_FIXTURES, ...QF_FIXTURES, ...SF_FIXTURES, ...FINAL_FIXTURES];
-  allFixtures.forEach(f => {
-    resultsMap[f.num] = buildKoMatchResult(f, bracketData, resultsMap);
-  });
-
-  if (!bracketData.allGroupsComplete) {
-    container.insertAdjacentHTML('beforeend', `
-      <div class="il-note" style="margin-bottom:20px">
-        ⚠️ <strong>חלק מהמשבצות עדיין תלויות בדירוג השלישיים</strong> ויוצגו כ"שלישי טוב" עד לתוצאה סופית
-      </div>
-    `);
-  }
-
-  // קבץ לפי תאריך ה-IL (לפי day field שכבר מחושב נכון לכל fixture)
-  const byDate = {};
-  allFixtures.forEach(f => {
-    const key = `${f.date}_${f.nextDay ? 1 : 0}`; // נשתמש בקומבינציה date+nextDay ככפתח קיבוץ ייחודי לפי יום שמופיע ב-day
-    const groupKey = f.day; // ה-day string הוא כבר ייחודי ליום קלנדרי ב-IL
-    if (!byDate[groupKey]) byDate[groupKey] = [];
-    byDate[groupKey].push(f);
-  });
-
-  // מיין את הימים לפי התאריך הכרונולוגי האמיתי (date + nextDay)
-  function dateSortValue(f) {
-    const [y,m,d] = f.date.split('-').map(Number);
-    return new Date(y, m-1, d + (f.nextDay ? 1 : 0)).getTime();
-  }
-  const dayGroups = Object.entries(byDate).map(([day, fixtures]) => ({
-    day,
-    sortVal: dateSortValue(fixtures[0]),
-    fixtures: fixtures.sort((a,b) => (a.gmtH*60+a.gmtM) - (b.gmtH*60+b.gmtM))
-  })).sort((a,b) => a.sortVal - b.sortVal);
-
-  dayGroups.forEach(group => {
-    const html = `
-      <div class="bracket-round-title">${group.day}</div>
-      <div class="bracket-matches">
-        ${group.fixtures.map(f => {
-          const r = resultsMap[f.num];
-          const aClass = r.decided && r.winnerKey === r.a.key ? 'winner' : r.a.decided ? 'decided' : 'pending';
-          const bClass = r.decided && r.winnerKey === r.b.key ? 'winner' : r.b.decided ? 'decided' : 'pending';
-          const scoreDisplay = r.score ? `<span class="bracket-score">${r.status==='live'?'🔴 ':''}${r.score}</span>` : '';
-          return `
-            <div class="bracket-match">
-              <div class="bracket-match-num">משחק ${f.num}${f.label ? ' · '+f.label : ''}</div>
-              <div class="bracket-datetime">🕐 ${ilTime(f.gmtH, f.gmtM)}</div>
-              <div class="bracket-team ${aClass}">
-                <span>${r.a.label}</span>
-                ${aClass !== 'pending' ? scoreDisplay : ''}
-              </div>
-              <div class="bracket-divider"></div>
-              <div class="bracket-team ${bClass}">
-                <span>${r.b.label}</span>
-              </div>
-              <div class="bracket-venue">${f.venue}, ${f.city}</div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    `;
-    container.insertAdjacentHTML('beforeend', html);
-  });
 }
 
 // ──────────────────────────────────────────────
