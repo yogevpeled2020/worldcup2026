@@ -1354,22 +1354,22 @@ function renderCurrent() {
 // מבנה Round of 32 הרשמי של FIFA (Match 73-88)
 // type: 'winner' = מקום 1 בבית, 'runnerup' = מקום 2, 'third' = השלישי הטוב מבין הבתים שצוינו
 const R32_FIXTURES = [
-  { num:73, date:'2026-06-28', day:'יום א׳ 28/06', gmtH:19, gmtM:0, a:{type:'runnerup', group:'A'}, b:{type:'runnerup', group:'B'}, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
-  { num:74, date:'2026-06-29', day:'שני 29/06', gmtH:20, gmtM:30, a:{type:'winner',   group:'E'}, b:{type:'third', groups:['A','B','C','D','F']}, venue:'Gillette Stadium', city:'בוסטון' },
-  { num:75, date:'2026-06-29', day:'שלישי 30/06', gmtH:1, gmtM:0, nextDay:true, a:{type:'winner',   group:'F'}, b:{type:'runnerup', group:'C'}, venue:'Estadio Monterrey', city:'גוואדלופה' },
-  { num:76, date:'2026-06-29', day:'שני 29/06', gmtH:17, gmtM:0, a:{type:'winner',   group:'C'}, b:{type:'runnerup', group:'F'}, venue:'NRG Stadium', city:'יוסטון' },
-  { num:77, date:'2026-06-30', day:'רביעי 01/07', gmtH:21, gmtM:0, nextDay:true, a:{type:'winner',   group:'I'}, b:{type:'third', groups:['C','D','F','G','H']}, venue:'MetLife Stadium', city:'ניו ג\'רזי' },
-  { num:78, date:'2026-06-30', day:'שלישי 30/06', gmtH:17, gmtM:0, a:{type:'runnerup', group:'E'}, b:{type:'runnerup', group:'I'}, venue:'AT&T Stadium', city:'דאלאס' },
-  { num:79, date:'2026-06-30', day:'רביעי 01/07', gmtH:1, gmtM:0, nextDay:true, a:{type:'winner',   group:'A'}, b:{type:'third', groups:['C','E','F','H','I']}, venue:'Estadio Azteca', city:'מקסיקו סיטי' },
-  { num:80, date:'2026-07-01', day:'רביעי 01/07', gmtH:16, gmtM:0, a:{type:'winner',   group:'L'}, b:{type:'third', groups:['E','H','I','J','K']}, venue:'Mercedes-Benz Stadium', city:'אטלנטה' },
-  { num:81, date:'2026-07-01', day:'יום ה׳ 02/07', gmtH:0, gmtM:0, nextDay:true, a:{type:'winner',   group:'D'}, b:{type:'third', groups:['B','E','F','I','J']}, venue:'Levi\'s Stadium', city:'סן פרנסיסקו' },
-  { num:82, date:'2026-07-01', day:'רביעי 01/07', gmtH:20, gmtM:0, a:{type:'winner',   group:'G'}, b:{type:'third', groups:['A','E','H','I','J']}, venue:'Lumen Field', city:'סיאטל' },
-  { num:83, date:'2026-07-02', day:'יום ו׳ 03/07', gmtH:23, gmtM:0, nextDay:true, a:{type:'winner',   group:'H'}, b:{type:'runnerup', group:'J'}, venue:'BMO Field', city:'טורונטו' },
-  { num:84, date:'2026-07-02', day:'יום ה׳ 02/07', gmtH:19, gmtM:0, a:{type:'runnerup', group:'K'}, b:{type:'runnerup', group:'L'}, venue:'SoFi Stadium', city:'לוס אנג\'לס' },
-  { num:85, date:'2026-07-02', day:'יום ו׳ 03/07', gmtH:3, gmtM:0, nextDay:true, a:{type:'winner',   group:'B'}, b:{type:'third', groups:['E','F','G','I','J']}, venue:'BC Place', city:'ונקובר' },
-  { num:86, date:'2026-07-03', day:'שבת 04/07', gmtH:22, gmtM:0, nextDay:true, a:{type:'winner',   group:'J'}, b:{type:'runnerup', group:'H'}, venue:'Hard Rock Stadium', city:'מיאמי' },
-  { num:87, date:'2026-07-03', day:'שבת 04/07', gmtH:1, gmtM:30, nextDay:true, a:{type:'winner',   group:'K'}, b:{type:'third', groups:['D','E','I','J','L']}, venue:'Arrowhead Stadium', city:'קנזס סיטי' },
-  { num:88, date:'2026-07-03', day:'יום ו׳ 03/07', gmtH:18, gmtM:0, a:{type:'runnerup', group:'D'}, b:{type:'runnerup', group:'G'}, venue:'AT&T Stadium', city:'דאלאס' },
+  { num:73, date:'2026-06-28', day:'יום א׳ 28/06', gmtH:19, gmtM:0, a:{type:'fixed', name:'דרום אפריקה 🇿🇦'}, b:{type:'fixed', name:'קנדה 🇨🇦'}, venue:'Los Angeles Stadium', city:'לוס אנג\'לס' },
+  { num:74, date:'2026-06-29', day:'שני 29/06', gmtH:20, gmtM:30, a:{type:'fixed', name:'גרמניה 🇩🇪'}, b:{type:'fixed', name:'פרגוואי 🇵🇾'}, venue:'Gillette Stadium', city:'בוסטון' },
+  { num:75, date:'2026-06-29', day:'שלישי 30/06', gmtH:1, gmtM:0, nextDay:true, a:{type:'fixed', name:'הולנד 🇳🇱'}, b:{type:'fixed', name:'מרוקו 🇲🇦'}, venue:'Estadio Monterrey', city:'גוואדלופה' },
+  { num:76, date:'2026-06-29', day:'שני 29/06', gmtH:17, gmtM:0, a:{type:'fixed', name:'ברזיל 🇧🇷'}, b:{type:'fixed', name:'יפן 🇯🇵'}, venue:'NRG Stadium', city:'יוסטון' },
+  { num:77, date:'2026-06-30', day:'רביעי 01/07', gmtH:21, gmtM:0, nextDay:true, a:{type:'fixed', name:'צרפת 🇫🇷'}, b:{type:'fixed', name:'שוודיה 🇸🇪'}, venue:'MetLife Stadium', city:'ניו ג\'רזי' },
+  { num:78, date:'2026-06-30', day:'שלישי 30/06', gmtH:17, gmtM:0, a:{type:'fixed', name:'חוף השנהב 🇨🇮'}, b:{type:'fixed', name:'נורווגיה 🇳🇴'}, venue:'AT&T Stadium', city:'דאלאס' },
+  { num:79, date:'2026-06-30', day:'רביעי 01/07', gmtH:1, gmtM:0, nextDay:true, a:{type:'fixed', name:'מקסיקו 🇲🇽'}, b:{type:'fixed', name:'אקוודור 🇪🇨'}, venue:'Estadio Azteca', city:'מקסיקו סיטי' },
+  { num:80, date:'2026-07-01', day:'רביעי 01/07', gmtH:16, gmtM:0, a:{type:'fixed', name:'אנגליה 🏴'}, b:{type:'fixed', name:'קונגו DR 🇨🇩'}, venue:'Mercedes-Benz Stadium', city:'אטלנטה' },
+  { num:81, date:'2026-07-01', day:'יום ה׳ 02/07', gmtH:0, gmtM:0, nextDay:true, a:{type:'fixed', name:'ארה"ב 🇺🇸'}, b:{type:'fixed', name:'בוסניה 🇧🇦'}, venue:'Levi\'s Stadium', city:'סן פרנסיסקו' },
+  { num:82, date:'2026-07-01', day:'רביעי 01/07', gmtH:20, gmtM:0, a:{type:'fixed', name:'בלגיה 🇧🇪'}, b:{type:'fixed', name:'סנגל 🇸🇳'}, venue:'Lumen Field', city:'סיאטל' },
+  { num:83, date:'2026-07-02', day:'יום ו׳ 03/07', gmtH:23, gmtM:0, nextDay:true, a:{type:'fixed', name:'פורטוגל 🇵🇹'}, b:{type:'fixed', name:'קרואטיה 🇭🇷'}, venue:'BMO Field', city:'טורונטו' },
+  { num:84, date:'2026-07-02', day:'יום ה׳ 02/07', gmtH:19, gmtM:0, a:{type:'fixed', name:'ספרד 🇪🇸'}, b:{type:'fixed', name:'אוסטריה 🇦🇹'}, venue:'SoFi Stadium', city:'לוס אנג\'לס' },
+  { num:85, date:'2026-07-02', day:'יום ו׳ 03/07', gmtH:3, gmtM:0, nextDay:true, a:{type:'fixed', name:'שוויץ 🇨🇭'}, b:{type:'fixed', name:'אלג\'יריה 🇩🇿'}, venue:'BC Place', city:'ונקובר' },
+  { num:86, date:'2026-07-03', day:'שבת 04/07', gmtH:22, gmtM:0, nextDay:true, a:{type:'fixed', name:'ארגנטינה 🇦🇷'}, b:{type:'fixed', name:'כף ורדה 🇨🇻'}, venue:'Hard Rock Stadium', city:'מיאמי' },
+  { num:87, date:'2026-07-03', day:'שבת 04/07', gmtH:1, gmtM:30, nextDay:true, a:{type:'fixed', name:'קולומביה 🇨🇴'}, b:{type:'fixed', name:'גאנה 🇬🇭'}, venue:'Arrowhead Stadium', city:'קנזס סיטי' },
+  { num:88, date:'2026-07-03', day:'יום ו׳ 03/07', gmtH:18, gmtM:0, a:{type:'fixed', name:'אוסטרליה 🇦🇺'}, b:{type:'fixed', name:'מצרים 🇪🇬'}, venue:'AT&T Stadium', city:'דאלאס' },
 ];
 
 const R16_FIXTURES = [
@@ -1449,6 +1449,9 @@ function calcBracketData() {
 function resolveSlot(slot, bracketData, resultsMap) {
   const { sorted, allGroupsComplete, bestThirds } = bracketData;
 
+  if (slot.type === 'fixed') {
+    return { label: slot.name, decided:true, key: stripEmoji(slot.name) };
+  }
   if (slot.type === 'winner') {
     if (!groupIsComplete(slot.group)) return { label: `מקום 1 בית ${slot.group}`, decided:false };
     const t = sorted[slot.group][0];
@@ -1460,10 +1463,15 @@ function resolveSlot(slot, bracketData, resultsMap) {
     return { label: t.name, decided:true, key: stripEmoji(t.name) };
   }
   if (slot.type === 'third') {
-    if (!allGroupsComplete) return { label: `שלישי טוב ${slot.groups.join('/')}`, decided:false };
-    const found = bestThirds.find(bt => slot.groups.includes(bt.letter));
-    if (!found) return { label: `(לא עלה משלישיים)`, decided:false, eliminated:true };
-    return { label: found.team.name, decided:true, key: stripEmoji(found.team.name) };
+    // FIFA's official "Annex C" table maps each of the 8 qualifying third-place
+    // teams to a specific slot based on which combination of 8 groups qualified —
+    // there are 495 possible combinations and we don't have that table.
+    // Rather than guess (and risk showing the wrong team), we always show a
+    // generic placeholder here. The match itself will still display real team
+    // names and the correct score once scores.json reports a final result,
+    // because buildKoMatchResult tries every possible third-place team via
+    // findScoreByKeysAmongThirds below.
+    return { label: `שלישי טוב ${slot.groups.join('/')}`, decided:false, thirdGroups: slot.groups };
   }
   if (slot.type === 'winnerOf' || slot.type === 'loserOf') {
     const prevResult = resultsMap[slot.num];
