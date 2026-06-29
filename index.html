@@ -1731,6 +1731,8 @@ function renderTree() {
   // ════════════════════════════════════════
   // R32 שמאל (8 משחקים, slot 0-7 ישירות)
   // ════════════════════════════════════════
+  const matchNumCenterY = {}; // מיפוי גלובלי: match number -> centerY בעץ (למציאת קישורים נכונה, לא תלוי בסדר)
+
   const leftR32  = R32_FIXTURES.slice(0, 8);
   const rightR32 = R32_FIXTURES.slice(8, 16);
   const r32LeftCenters = [];
@@ -1738,6 +1740,7 @@ function renderTree() {
     const cy = slotCenterY(i);
     drawPair(colX.r32L, cy, f, resultsMap[f.num]);
     r32LeftCenters[i] = cy;
+    matchNumCenterY[f.num] = cy;
   });
 
   const r32RightCenters = [];
@@ -1745,66 +1748,78 @@ function renderTree() {
     const cy = slotCenterY(i);
     drawPair(colX.r32R, cy, f, resultsMap[f.num]);
     r32RightCenters[i] = cy;
+    matchNumCenterY[f.num] = cy;
   });
 
   // ════════════════════════════════════════
-  // R16 שמאל (4) — parent center = ממוצע 2 ילדים עוקבים
+  // R16 שמאל (4) — parent center = ממוצע 2 ילדים, נמצאים לפי מספר משחק אמיתי
   // ════════════════════════════════════════
   const r16LeftFixtures = R16_FIXTURES.slice(0, 4);
   const r16LeftCenters = [];
   r16LeftFixtures.forEach((f, i) => {
-    const c1 = r32LeftCenters[i*2], c2 = r32LeftCenters[i*2+1];
+    const c1 = matchNumCenterY[f.a.num];
+    const c2 = matchNumCenterY[f.b.num];
     const cy = (c1 + c2) / 2;
     drawPair(colX.r16L, cy, f, resultsMap[f.num]);
     r16LeftCenters[i] = cy;
+    matchNumCenterY[f.num] = cy;
     connectChildren(colX.r32L + BOX_W, [c1, c2], colX.r16L, cy, 'right');
   });
 
   const r16RightFixtures = R16_FIXTURES.slice(4, 8);
   const r16RightCenters = [];
   r16RightFixtures.forEach((f, i) => {
-    const c1 = r32RightCenters[i*2], c2 = r32RightCenters[i*2+1];
+    const c1 = matchNumCenterY[f.a.num];
+    const c2 = matchNumCenterY[f.b.num];
     const cy = (c1 + c2) / 2;
     drawPair(colX.r16R, cy, f, resultsMap[f.num]);
     r16RightCenters[i] = cy;
+    matchNumCenterY[f.num] = cy;
     connectChildren(colX.r32R, [c1, c2], colX.r16R + BOX_W, cy, 'left');
   });
 
   // ════════════════════════════════════════
-  // QF שמאל (2)
+  // QF (4) — צד נקבע דינמית לפי מיקום ה-X של ה-parent matches, לא לפי סדר מובנה מראש
   // ════════════════════════════════════════
-  const qfLeftFixtures = QF_FIXTURES.slice(0, 2);
-  const qfLeftCenters = [];
-  qfLeftFixtures.forEach((f, i) => {
-    const c1 = r16LeftCenters[i*2], c2 = r16LeftCenters[i*2+1];
+  const qfCenters = {};
+  QF_FIXTURES.forEach((f) => {
+    const c1 = matchNumCenterY[f.a.num];
+    const c2 = matchNumCenterY[f.b.num];
     const cy = (c1 + c2) / 2;
-    drawPair(colX.qfL, cy, f, resultsMap[f.num]);
-    qfLeftCenters[i] = cy;
-    connectChildren(colX.r16L + BOX_W, [c1, c2], colX.qfL, cy, 'right');
+    // קבע צד: אם שני ה-parents הגיעו מ-R16 שמאל (מספרים 89-92) -> שמאל, אחרת ימין
+    const isLeft = (f.a.num <= 92 && f.b.num <= 92);
+    const x = isLeft ? colX.qfL : colX.qfR;
+    drawPair(x, cy, f, resultsMap[f.num]);
+    qfCenters[f.num] = cy;
+    matchNumCenterY[f.num] = cy;
+    if (isLeft) {
+      connectChildren(colX.r16L + BOX_W, [c1, c2], colX.qfL, cy, 'right');
+    } else {
+      connectChildren(colX.r16R, [c1, c2], colX.qfR + BOX_W, cy, 'left');
+    }
   });
 
-  const qfRightFixtures = QF_FIXTURES.slice(2, 4);
-  const qfRightCenters = [];
-  qfRightFixtures.forEach((f, i) => {
-    const c1 = r16RightCenters[i*2], c2 = r16RightCenters[i*2+1];
+  // ════════════════════════════════════════
+  // SF (2) — צד נקבע דינמית
+  // ════════════════════════════════════════
+  const sfCenters = {};
+  SF_FIXTURES.forEach((f) => {
+    const c1 = matchNumCenterY[f.a.num];
+    const c2 = matchNumCenterY[f.b.num];
     const cy = (c1 + c2) / 2;
-    drawPair(colX.qfR, cy, f, resultsMap[f.num]);
-    qfRightCenters[i] = cy;
-    connectChildren(colX.r16R, [c1, c2], colX.qfR + BOX_W, cy, 'left');
+    const isLeft = (f.a.num <= 98 && f.b.num <= 98);
+    const x = isLeft ? colX.sfL : colX.sfR;
+    drawPair(x, cy, f, resultsMap[f.num]);
+    sfCenters[f.num] = cy;
+    matchNumCenterY[f.num] = cy;
+    if (isLeft) {
+      connectChildren(colX.qfL + BOX_W, [c1, c2], colX.sfL, cy, 'right');
+    } else {
+      connectChildren(colX.qfR, [c1, c2], colX.sfR + BOX_W, cy, 'left');
+    }
   });
-
-  // ════════════════════════════════════════
-  // SF שמאל/ימין (1 כל צד)
-  // ════════════════════════════════════════
-  const sfLeftF = SF_FIXTURES[0];
-  const sfLeftCenter = (qfLeftCenters[0] + qfLeftCenters[1]) / 2;
-  drawPair(colX.sfL, sfLeftCenter, sfLeftF, resultsMap[sfLeftF.num]);
-  connectChildren(colX.qfL + BOX_W, qfLeftCenters, colX.sfL, sfLeftCenter, 'right');
-
-  const sfRightF = SF_FIXTURES[1];
-  const sfRightCenter = (qfRightCenters[0] + qfRightCenters[1]) / 2;
-  drawPair(colX.sfR, sfRightCenter, sfRightF, resultsMap[sfRightF.num]);
-  connectChildren(colX.qfR, qfRightCenters, colX.sfR + BOX_W, sfRightCenter, 'left');
+  const sfLeftCenter  = Object.entries(sfCenters).find(([num]) => SF_FIXTURES.find(f=>f.num==num).a.num <= 98)?.[1] ?? sfCenters[SF_FIXTURES[0].num];
+  const sfRightCenter = Object.entries(sfCenters).find(([num]) => SF_FIXTURES.find(f=>f.num==num).a.num > 98)?.[1] ?? sfCenters[SF_FIXTURES[1].num];
 
   // ════════════════════════════════════════
   // הגמר במרכז — centerY = ממוצע שני חצאי הגמר
