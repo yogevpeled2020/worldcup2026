@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-30T10:33:22Z",
-  "count": 76,
+  "updated": "2026-06-30T19:02:17Z",
+  "count": 77,
   "matches": [
     {
       "home": "Mexico",
@@ -611,6 +611,14 @@
       "minute": null,
       "date": "2026-06-30",
       "penalty": "2-3"
+    },
+    {
+      "home": "Ivory Coast",
+      "away": "Norway",
+      "score": "1-2",
+      "status": "live",
+      "minute": null,
+      "date": "2026-06-30"
     }
   ]
 }
