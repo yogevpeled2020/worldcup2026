@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-30T04:55:51Z",
+  "updated": "2026-06-30T10:33:22Z",
   "count": 76,
   "matches": [
     {
@@ -601,7 +601,7 @@
       "status": "final",
       "minute": null,
       "date": "2026-06-29",
-      "penalty": "4-4"
+      "penalty": "3-4"
     },
     {
       "home": "Netherlands",
@@ -610,7 +610,7 @@
       "status": "final",
       "minute": null,
       "date": "2026-06-30",
-      "penalty": "3-3"
+      "penalty": "2-3"
     }
   ]
 }
