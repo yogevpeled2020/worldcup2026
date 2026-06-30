@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-29T22:33:40Z",
-  "count": 75,
+  "updated": "2026-06-30T03:58:15Z",
+  "count": 76,
   "matches": [
     {
       "home": "Mexico",
@@ -597,10 +597,20 @@
     {
       "home": "Germany",
       "away": "Paraguay",
-      "score": "1-1",
-      "status": "live",
+      "score": "4-5",
+      "status": "final",
       "minute": null,
-      "date": "2026-06-29"
+      "date": "2026-06-29",
+      "penalty": "4-4"
+    },
+    {
+      "home": "Netherlands",
+      "away": "Morocco",
+      "score": "3-4",
+      "status": "final",
+      "minute": null,
+      "date": "2026-06-30",
+      "penalty": "2-2"
     }
   ]
 }
