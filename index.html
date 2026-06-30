@@ -1078,7 +1078,9 @@ function renderKnockoutByDate(container) {
             const r = resultsMap[f.num];
             const aWin = r.decided && r.winnerKey === r.a.key;
             const bWin = r.decided && r.winnerKey === r.b.key;
-            const scoreDisplay = r.score ? `<span class="score-badge ${r.status==='live'?'score-live':'score-final'}">${r.status==='live'?'🔴 ':''}${r.score}</span>` : '';
+            const scoreParts = r.score ? r.score.split('-') : null;
+            const aScoreDisplay = scoreParts ? `<span class="score-badge ${r.status==='live'?'score-live':'score-final'}">${scoreParts[0]}</span>` : '';
+            const bScoreDisplay = scoreParts ? `<span class="score-badge ${r.status==='live'?'score-live':'score-final'}">${r.status==='live'?'🔴 ':''}${scoreParts[1]}</span>` : '';
             return `
               <div class="tl-match">
                 <div class="tl-match-top">
@@ -1087,9 +1089,10 @@ function renderKnockoutByDate(container) {
                 </div>
                 <div class="tl-teams">
                   <span style="${aWin ? 'color:#4caf7d;font-weight:800' : ''}">${r.a.label}</span>
+                  ${aScoreDisplay}
                   <span class="tl-vs">נגד</span>
                   <span style="${bWin ? 'color:#4caf7d;font-weight:800' : ''}">${r.b.label}</span>
-                  ${scoreDisplay}
+                  ${bScoreDisplay}
                 </div>
                 <div class="tl-venue">${f.venue}, ${f.city}</div>
               </div>
