@@ -1,6 +1,6 @@
 {
-  "updated": "2026-07-01T10:44:35Z",
-  "count": 79,
+  "updated": "2026-07-01T19:49:40Z",
+  "count": 80,
   "matches": [
     {
       "home": "Mexico",
@@ -632,6 +632,14 @@
       "home": "Mexico",
       "away": "Ecuador",
       "score": "2-0",
+      "status": "final",
+      "minute": null,
+      "date": "2026-07-01"
+    },
+    {
+      "home": "England",
+      "away": "Congo DR",
+      "score": "2-1",
       "status": "final",
       "minute": null,
       "date": "2026-07-01"
