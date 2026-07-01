@@ -1,6 +1,6 @@
 {
-  "updated": "2026-07-01T19:49:40Z",
-  "count": 80,
+  "updated": "2026-07-01T22:43:33Z",
+  "count": 81,
   "matches": [
     {
       "home": "Mexico",
@@ -641,6 +641,14 @@
       "away": "Congo DR",
       "score": "2-1",
       "status": "final",
+      "minute": null,
+      "date": "2026-07-01"
+    },
+    {
+      "home": "Belgium",
+      "away": "Senegal",
+      "score": "2-2",
+      "status": "live",
       "minute": null,
       "date": "2026-07-01"
     }
