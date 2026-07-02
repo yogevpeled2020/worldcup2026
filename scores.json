@@ -1,6 +1,6 @@
 {
-  "updated": "2026-07-01T22:43:33Z",
-  "count": 81,
+  "updated": "2026-07-02T02:22:56Z",
+  "count": 82,
   "matches": [
     {
       "home": "Mexico",
@@ -647,10 +647,18 @@
     {
       "home": "Belgium",
       "away": "Senegal",
-      "score": "2-2",
-      "status": "live",
+      "score": "3-2",
+      "status": "final",
       "minute": null,
       "date": "2026-07-01"
+    },
+    {
+      "home": "United States",
+      "away": "Bosnia-Herzegovina",
+      "score": "2-0",
+      "status": "final",
+      "minute": null,
+      "date": "2026-07-02"
     }
   ]
 }
