@@ -1,6 +1,6 @@
 {
-  "updated": "2026-07-02T10:12:32Z",
-  "count": 82,
+  "updated": "2026-07-02T22:31:39Z",
+  "count": 83,
   "matches": [
     {
       "home": "Mexico",
@@ -656,6 +656,14 @@
       "home": "United States",
       "away": "Bosnia-Herzegovina",
       "score": "2-0",
+      "status": "final",
+      "minute": null,
+      "date": "2026-07-02"
+    },
+    {
+      "home": "Spain",
+      "away": "Austria",
+      "score": "3-0",
       "status": "final",
       "minute": null,
       "date": "2026-07-02"
