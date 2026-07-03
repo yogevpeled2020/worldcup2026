@@ -1,6 +1,6 @@
 {
-  "updated": "2026-07-02T22:31:39Z",
-  "count": 83,
+  "updated": "2026-07-03T04:33:22Z",
+  "count": 85,
   "matches": [
     {
       "home": "Mexico",
@@ -667,6 +667,22 @@
       "status": "final",
       "minute": null,
       "date": "2026-07-02"
+    },
+    {
+      "home": "Portugal",
+      "away": "Croatia",
+      "score": "2-1",
+      "status": "final",
+      "minute": null,
+      "date": "2026-07-02"
+    },
+    {
+      "home": "Switzerland",
+      "away": "Algeria",
+      "score": "2-0",
+      "status": "live",
+      "minute": null,
+      "date": "2026-07-03"
     }
   ]
 }
