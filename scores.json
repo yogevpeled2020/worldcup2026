@@ -1,6 +1,6 @@
 {
-  "updated": "2026-07-03T22:29:35Z",
-  "count": 87,
+  "updated": "2026-07-04T04:26:12Z",
+  "count": 88,
   "matches": [
     {
       "home": "Mexico",
@@ -696,10 +696,18 @@
     {
       "home": "Argentina",
       "away": "Cape Verde Islands",
-      "score": "0-0",
-      "status": "live",
+      "score": "3-2",
+      "status": "final",
       "minute": null,
       "date": "2026-07-03"
+    },
+    {
+      "home": "Colombia",
+      "away": "Ghana",
+      "score": "1-0",
+      "status": "final",
+      "minute": null,
+      "date": "2026-07-04"
     }
   ]
 }
