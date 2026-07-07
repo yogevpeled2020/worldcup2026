@@ -1,6 +1,6 @@
 {
-  "updated": "2026-07-07T10:28:17Z",
-  "count": 94,
+  "updated": "2026-07-07T22:33:58Z",
+  "count": 96,
   "matches": [
     {
       "home": "Mexico",
@@ -754,6 +754,22 @@
       "away": "Belgium",
       "score": "1-4",
       "status": "final",
+      "minute": null,
+      "date": "2026-07-07"
+    },
+    {
+      "home": "Argentina",
+      "away": "Egypt",
+      "score": "3-2",
+      "status": "final",
+      "minute": null,
+      "date": "2026-07-07"
+    },
+    {
+      "home": "Switzerland",
+      "away": "Colombia",
+      "score": "0-0",
+      "status": "live",
       "minute": null,
       "date": "2026-07-07"
     }
