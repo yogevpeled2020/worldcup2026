@@ -1,6 +1,6 @@
 {
-  "updated": "2026-07-18T08:51:27Z",
-  "count": 102,
+  "updated": "2026-07-18T22:10:10Z",
+  "count": 103,
   "matches": [
     {
       "home": "Mexico",
@@ -821,6 +821,14 @@
       "status": "final",
       "minute": null,
       "date": "2026-07-15"
+    },
+    {
+      "home": "France",
+      "away": "England",
+      "score": "0-4",
+      "status": "live",
+      "minute": null,
+      "date": "2026-07-18"
     }
   ]
 }
