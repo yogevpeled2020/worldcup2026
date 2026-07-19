@@ -1,6 +1,6 @@
 {
-  "updated": "2026-07-19T09:07:47Z",
-  "count": 103,
+  "updated": "2026-07-19T22:12:00Z",
+  "count": 104,
   "matches": [
     {
       "home": "Mexico",
@@ -829,6 +829,14 @@
       "status": "final",
       "minute": null,
       "date": "2026-07-18"
+    },
+    {
+      "home": "Spain",
+      "away": "Argentina",
+      "score": "1-0",
+      "status": "final",
+      "minute": null,
+      "date": "2026-07-19"
     }
   ]
 }
